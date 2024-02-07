@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id String @id @default(uuid())
+  username String @unique
+  password String
+  role Role @default(MEMBER)
+  refresh_token String?
+  post Post[]
+  reply Reply[]
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+model Post {
+  id BigInt @default(autoincrement()) @id
+  title String
+  content String
+  post_state PostState @default(ORIGINAL)
+  writer_id String
+  created_date DateTime @default(now()) @db.Timestamptz(6)
+  writer Users @relation(fields: [writer_id], references: [id], onDelete: Cascade)
+  reply Reply[]
+}
+
+enum PostState {
+  ORIGINAL
+  EDITED
+}
+
+model Reply {
+  id BigInt @default(autoincrement()) @id
+  writer_id String
+  post_id BigInt
+  content String
+  reply_state ReplyState @default(ORIGINAL)
+  created_date DateTime @default(now()) @db.Timestamptz(6)
+  writer Users @relation(fields: [writer_id], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [post_id], references: [id], onDelete: Cascade)
+}
+
+enum ReplyState {
+  ORIGINAL
+  EDITED
+}

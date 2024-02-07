@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Post" ALTER COLUMN "created_date" SET DATA TYPE TIMESTAMPTZ(6);
+
+-- AlterTable
+ALTER TABLE "Reply" ALTER COLUMN "created_date" SET DATA TYPE TIMESTAMPTZ(6);

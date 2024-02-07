@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  # 아래 주석은 도커를 이용해 db 테스트를 할경우에 사용한다.
+  # db:
+  #   image: postgres:13
+  #   restart: always
+  #   container_name: node_fullstack_test_db
+  #   ports:
+  #     - '5433:5432'
+  #   environment:
+  #     POSTGRES_USER: prisma
+  #     POSTGRES_PASSWORD: prisma
+  #     POSTGRES_DB: node_fullstack_test
+  redis:
+    image: redis
+    command: redis-server --port 6379
+    container_name: redis
+    hostname: redis_boot
+    labels:
+      - 'name=redis'
+      - 'mode=standalone'
+    ports:
+      - 6379:6379
