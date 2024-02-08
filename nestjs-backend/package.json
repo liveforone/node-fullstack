@@ -10,8 +10,8 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "db:update": "npx prisma generate && npx prisma migrate dev --name init",
     "docker:start": "wsl docker-compose up -d && wsl exit",
-    "start": "npm run docker:start  && npx prisma migrate deploy && nest start",
-    "start:dev": "nest start --watch",
+    "start": "npm run docker:start  && npx prisma migrate deploy && pm2 start dist/main.js -i max",
+    "start:dev": "npm run docker:start  && npx prisma migrate deploy && nest start",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "docker:stop": "wsl docker-compose down && wsl exit",
@@ -44,9 +44,11 @@
     "joi": "^17.11.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.11.3",
+    "pm2": "^5.3.1",
     "prisma": "^5.9.1",
     "prisma-no-offset": "^1.0.4",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

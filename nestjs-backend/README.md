@@ -1,5 +1,77 @@
 # NestJS Backend
 
+## 목차
+
+- [NestJS Backend](#nestjs-backend)
+  - [목차](#목차)
+  - [기술 스택](#기술-스택)
+    - [기술 스택 선정이유](#기술-스택-선정이유)
+      - [Prisma](#prisma)
+    - [postgresql](#postgresql)
+    - [class-validator](#class-validator)
+  - [install](#install)
+  - [pm2](#pm2)
+    - [install](#install-1)
+    - [command](#command)
+  - [setting](#setting)
+  - [script setting](#script-setting)
+  - [prisma cli](#prisma-cli)
+    - [초기세팅](#초기세팅)
+    - [중간마다 계속 실행, 초기 포함, 스키마 변경시](#중간마다-계속-실행-초기-포함-스키마-변경시)
+  - [prisma api 주의 사항](#prisma-api-주의-사항)
+  - [자주 쓰는 custom cli command](#자주-쓰는-custom-cli-command)
+  - [nestjs 도메인 개발 특수사항](#nestjs-도메인-개발-특수사항)
+  - [테스트시 주의점](#테스트시-주의점)
+  - [Real DB Test](#real-db-test)
+  - [페이징](#페이징)
+  - [쿼리스트링 주의](#쿼리스트링-주의)
+  - [postgres sql 조회](#postgres-sql-조회)
+  - [prisma studio](#prisma-studio)
+  - [postgres admin4 접속안될때](#postgres-admin4-접속안될때)
+  - [프로덕션 추천 팁](#프로덕션-추천-팁)
+  - [모듈 이해](#모듈-이해)
+  - [복합키](#복합키)
+  - [n+1 문제 해결](#n1-문제-해결)
+  - [파일 업로드](#파일-업로드)
+  - [도커라이징](#도커라이징)
+
+## 기술 스택
+
+- Framework : NestJS
+- ORM : Prisma
+- Query Lib : prisma-no-offset
+- DB/Cache : Postgresql, Redis
+- Security : Jwt, Passport
+- Validation : class-validator
+- Test : Jest
+
+### 기술 스택 선정이유
+
+#### Prisma
+
+- typeorm을 먼저 사용했었다. 이 프로젝트는 typeorm으로 users 도메인까지 만들고, prisma로 전환하였다.
+- typeorm은 너무나 많은 config 코드가 필요하며, 각 도메인 모듈마다 config 코드를 또 배치해야하고,
+- 실제 DB 테스트시에 이 config 때문에 어렵고 복잡하여 테스트를 하기 어렵게 만들었다.
+- Prisma는 기본적으로 config 설정이 간단하고 light하다.
+- 또한 typeorm처럼 타입체크를 제대로 안해주지도 않는다.
+- 그리고 코드로 엔티티를 작성하지 못한다는게 단점으로 생각되었지만, 프리즈마 스키마는 코드에서 가져다 쓸수도 있기때문에(엔티티, enum 등등) 이 점이 단점이 되지 못했다.
+- no offset 페이징도 아주 쉽게 적용할 수 있었고, 라이브러리가 필요하면 만드는 것도 아주 간단하였다.
+
+### postgresql
+
+- async/await 사용이 가능한 mysql2를 먼저 사용하였다.
+- mysql2를 사용하면서 여러 에러를 직면하게 되었다.
+- 즉 사용하기 편하게 만든 것 같진 않았다. 특히 typeorm과 궁합이 아주 나빳다.
+- 이러한 이유로 prisma로 orm을 전환하기 전에 db가 먼저 전환되었다.
+
+### class-validator
+
+- 기존에는 joi를 이용해서 pipe를 직접만들어서 사용하고 있었다.
+- 이 방법은 귀찮은 코드가 너무 늘어나고, 이에 따라 class-validator를 사용하게 되었다.
+- 간단하고, 스프링의 spring-validation과 유사한 것이 큰 이유였다.
+- 다만 무겁고 성능 이슈가 존재하지만, 크게 와닿진 않았다.
+- 성능이슈를 해결한 typia 등이 있지만, typia는 문서가 많지 않아 적용에 어려움이 있었다.
+
 ## install
 
 - `nest new project-name`
@@ -7,7 +79,7 @@
 - `npm i @nestjs/testing`
 - `npm i @nestjs/config`
 - `npm i dotenv`
-- `wsl openssl rand -hex 64`
+- `wsl openssl rand -hex 64` : jwt 시크릿 키 생성
 - `npm i @nestjs/jwt passport-jwt`
 - `npm i @types/passport-jwt`
 - `npm i @nestjs/passport`
@@ -22,6 +94,20 @@
 - `npm i pg`
 - `nest g module auth`, service, controller generate
 - `nest g resource 이름`
+
+## pm2
+
+### install
+
+- 글로벌로 설치해야하며, 이미 설치되어있다.
+- `npm i uuid@latest -g`
+- `npm i pm2 -g`
+
+### command
+
+- `pm2 monit`
+- `pm2 stop 이름`
+- `pm2 kill` : 모든 프로세스 죽이기
 
 ## setting
 
@@ -73,9 +159,12 @@ app.enableShutdownHooks();
 - 개발 단계에서 중간중간 마이그레이션 파일을 만드는 command이다.
   - `npm run db:update`
   - `"db:update": "npx prisma generate && npx prisma migrate dev --name init",`
-- 도커 compose를 실행하며 db에 마이그레이션 파일을 deploy하는 start command이다.
+- 도커 compose를 실행하며 db에 마이그레이션 파일을 deploy하는 start command이다. **프로덕션에만 사용된다.(모든 쓰레드를 다 끌어다 쓰기 때문이다.)**
   - `npm start`
-  - `"start": "npm run docker:start  && npx prisma migrate deploy && nest start",`
+  - `"start": "npm run docker:start  && npx prisma migrate deploy && pm2 start dist/main.js -i max",`
+- 개발시 사용되면 도커 compose를 실행하며 db에 마이그레이션 파일을 deploy하는 command이다.
+  - `npm start:dev`
+  - `"start:dev": "npm run docker:start  && npx prisma migrate deploy && nest start"`
 - 서버 실행을 완료한 후 종료시 사용하는 command이다.
   - `npm run close`
   - `"close": "npm run docker:stop",`
@@ -236,3 +325,12 @@ const posts: Post[] = await prisma.user
   .findUniuqe({ where: { id: '1' } })
   .post(); //post는 users 스키마에 정의된 연관관계 post 이름
 ```
+
+## 파일 업로드
+
+- 파일을 쓰는경우 express framework만 가능하다. fastify는 불가능하다.
+- 그리고 복잡성이 두드러지므로, 파일 서버를 따로 분리하여서 save, serve 역할을 모두 하도록 위임하는 것이 좋다.
+
+## 도커라이징
+
+- [도커라이징 EN](https://www.tomray.dev/nestjs-docker-production)
