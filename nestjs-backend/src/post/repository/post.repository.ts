@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { PostRepoConstant } from './constant/post.repository.constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { $Enums, Post } from '@prisma/client';
@@ -10,8 +10,8 @@ import { getOffset, pageInitialize } from 'src/common/page.util';
 import { PostOffsetPageDto } from '../dto/response/post-offset-page.dto';
 import { PostOptimizedPageDto } from '../dto/response/post-optimized-page.dto';
 import { findLastIdOrDefault, ltLastIdCondition } from 'prisma-no-offset';
-import { GlobalExcMsg } from 'src/exceptionHandle/exceptionMessage/global.exception.message';
 import { validateFoundData } from 'src/common/validate.found-data';
+import { PrismaCommonErrCode } from 'src/exceptionHandle/exceptionMessage/global.exception.message';
 
 @Injectable()
 export class PostRepository {
@@ -25,20 +25,10 @@ export class PostRepository {
   그럼 자동으로 연관관계 매핑이 이루어진다.
   */
   async save(postEntity: PostEntity) {
-    await this.prisma.post
-      .create({
-        data: postEntity,
-      })
-      .catch((err) => {
-        if (err.code == GlobalExcMsg.UNIQUE_CONSTRAINTS_CODE) {
-          throw new HttpException(
-            GlobalExcMsg.IGNORE_UNIQUE_CONSTRAINTS,
-            HttpStatus.BAD_REQUEST,
-          );
-        } else {
-          throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
-        }
-      });
+    //유니크 제약 조건 위반 사항 없음
+    await this.prisma.post.create({
+      data: postEntity,
+    });
   }
 
   async updateContentByIdAndWriterId(
@@ -51,11 +41,18 @@ export class PostRepository {
         data: { content: content, post_state: $Enums.PostState.EDITED },
         where: { id: id, writer_id: writerId },
       })
-      .catch(() => {
-        throw new PostException(
-          PostExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST,
-          HttpStatus.BAD_REQUEST,
-        );
+      .catch((err) => {
+        let message: string;
+        let status: HttpStatus;
+
+        if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
+          message = PostExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
+          status = HttpStatus.BAD_REQUEST;
+        } else {
+          message = err.message;
+          status = HttpStatus.BAD_REQUEST;
+        }
+        throw new PostException(message, status);
       });
   }
 
@@ -64,11 +61,18 @@ export class PostRepository {
       .delete({
         where: { id: id, writer_id: writerId },
       })
-      .catch(() => {
-        throw new PostException(
-          PostExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST,
-          HttpStatus.BAD_REQUEST,
-        );
+      .catch((err) => {
+        let message: string;
+        let status: HttpStatus;
+
+        if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
+          message = PostExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
+          status = HttpStatus.BAD_REQUEST;
+        } else {
+          message = err.message;
+          status = HttpStatus.BAD_REQUEST;
+        }
+        throw new PostException(message, status);
       });
   }
 

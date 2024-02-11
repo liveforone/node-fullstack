@@ -32,8 +32,10 @@
   - [모듈 이해](#모듈-이해)
   - [복합키](#복합키)
   - [n+1 문제 해결](#n1-문제-해결)
+  - [Json 성능 최적화](#json-성능-최적화)
   - [파일 업로드](#파일-업로드)
   - [도커라이징](#도커라이징)
+  - [많이 쓰는 prisma 에러](#많이-쓰는-prisma-에러)
 
 ## 기술 스택
 
@@ -326,6 +328,16 @@ const posts: Post[] = await prisma.user
   .post(); //post는 users 스키마에 정의된 연관관계 post 이름
 ```
 
+## Json 성능 최적화
+
+- json은 client와 server가 통신하며 이루어지는 직렬화와 역직렬화 과정에서 불필요하게 성능을 떨어뜨린다.
+- 이에 대한 해결책은 다음과 같다.
+  1. 필요한 데이터만 넣는다.
+  2. 최대한 컴팩트하게 유지한다.
+  3. 중첩을 최대한 피한다.
+  4. 네이밍을 축약한다. (transaction_state => tnxState)
+  5. 프로토콜버퍼를 사용한다.
+
 ## 파일 업로드
 
 - 파일을 쓰는경우 express framework만 가능하다. fastify는 불가능하다.
@@ -334,3 +346,39 @@ const posts: Post[] = await prisma.user
 ## 도커라이징
 
 - [도커라이징 EN](https://www.tomray.dev/nestjs-docker-production)
+
+## 많이 쓰는 prisma 에러
+
+- unique 제약조건은 http exception으로 처리한다.
+
+```typescript
+let message: string;
+let status: HttpStatus;
+
+if (err.code == PrismaCommonErrCode.UNIQUE_CONSTRAINTS_VIOLATION) {
+  message = UsersExcMsg.USERNAME_UNIQUE_CONSTRAINTS_VIOLATION;
+  status = HttpStatus.CONFLICT;
+} else {
+  message = err.message;
+  status = HttpStatus.BAD_REQUEST;
+}
+
+throw new HttpException(message, status);
+```
+
+- 레코드 not found 에러는 다음과 같다.
+
+```typescript
+let message: string;
+let status: HttpStatus;
+
+if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
+  message = UsersExcMsg.USERS_ID_BAD_REQUEST;
+  status = HttpStatus.BAD_REQUEST;
+} else {
+  message = err.message;
+  status = HttpStatus.BAD_REQUEST;
+}
+
+throw new UsersException(message, status);
+```

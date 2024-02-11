@@ -18,24 +18,15 @@ const post_exception_1 = require("../../exceptionHandle/customException/post.exc
 const post_exception_message_1 = require("../../exceptionHandle/exceptionMessage/post.exception.message");
 const page_util_1 = require("../../common/page.util");
 const prisma_no_offset_1 = require("prisma-no-offset");
-const global_exception_message_1 = require("../../exceptionHandle/exceptionMessage/global.exception.message");
 const validate_found_data_1 = require("../../common/validate.found-data");
+const global_exception_message_1 = require("../../exceptionHandle/exceptionMessage/global.exception.message");
 let PostRepository = class PostRepository {
     constructor(prisma) {
         this.prisma = prisma;
     }
     async save(postEntity) {
-        await this.prisma.post
-            .create({
+        await this.prisma.post.create({
             data: postEntity,
-        })
-            .catch((err) => {
-            if (err.code == global_exception_message_1.GlobalExcMsg.UNIQUE_CONSTRAINTS_CODE) {
-                throw new common_1.HttpException(global_exception_message_1.GlobalExcMsg.IGNORE_UNIQUE_CONSTRAINTS, common_1.HttpStatus.BAD_REQUEST);
-            }
-            else {
-                throw new common_1.HttpException(err.message, common_1.HttpStatus.BAD_REQUEST);
-            }
         });
     }
     async updateContentByIdAndWriterId(content, id, writerId) {
@@ -44,8 +35,18 @@ let PostRepository = class PostRepository {
             data: { content: content, post_state: client_1.$Enums.PostState.EDITED },
             where: { id: id, writer_id: writerId },
         })
-            .catch(() => {
-            throw new post_exception_1.PostException(post_exception_message_1.PostExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST, common_1.HttpStatus.BAD_REQUEST);
+            .catch((err) => {
+            let message;
+            let status;
+            if (err.code === global_exception_message_1.PrismaCommonErrCode.RECORD_NOT_FOUND) {
+                message = post_exception_message_1.PostExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            else {
+                message = err.message;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            throw new post_exception_1.PostException(message, status);
         });
     }
     async deleteOneByIdAndWriterId(id, writerId) {
@@ -53,8 +54,18 @@ let PostRepository = class PostRepository {
             .delete({
             where: { id: id, writer_id: writerId },
         })
-            .catch(() => {
-            throw new post_exception_1.PostException(post_exception_message_1.PostExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST, common_1.HttpStatus.BAD_REQUEST);
+            .catch((err) => {
+            let message;
+            let status;
+            if (err.code === global_exception_message_1.PrismaCommonErrCode.RECORD_NOT_FOUND) {
+                message = post_exception_message_1.PostExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            else {
+                message = err.message;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            throw new post_exception_1.PostException(message, status);
         });
     }
     async findOneById(id) {

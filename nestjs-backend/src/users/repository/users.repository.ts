@@ -3,10 +3,10 @@ import { UsersRepoConstant } from './constant/users.repository.constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Users } from '@prisma/client';
 import { UsersEntity } from '../entities/users.entity';
-import { GlobalExcMsg } from 'src/exceptionHandle/exceptionMessage/global.exception.message';
 import { validateFoundData } from 'src/common/validate.found-data';
 import { UsersException } from 'src/exceptionHandle/customException/users.exception';
 import { UsersExcMsg } from 'src/exceptionHandle/exceptionMessage/users.exception.message';
+import { PrismaCommonErrCode } from 'src/exceptionHandle/exceptionMessage/global.exception.message';
 
 @Injectable()
 export class UsersRepository {
@@ -14,14 +14,18 @@ export class UsersRepository {
 
   async save(usersEntity: UsersEntity) {
     await this.prisma.users.create({ data: usersEntity }).catch((err) => {
-      if (err.code == GlobalExcMsg.UNIQUE_CONSTRAINTS_CODE) {
-        throw new HttpException(
-          GlobalExcMsg.IGNORE_UNIQUE_CONSTRAINTS,
-          HttpStatus.BAD_REQUEST,
-        );
+      let message: string;
+      let status: HttpStatus;
+
+      if (err.code == PrismaCommonErrCode.UNIQUE_CONSTRAINTS_VIOLATION) {
+        message = UsersExcMsg.USERNAME_UNIQUE_CONSTRAINTS_VIOLATION;
+        status = HttpStatus.CONFLICT;
       } else {
-        throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+        message = err.message;
+        status = HttpStatus.BAD_REQUEST;
       }
+
+      throw new HttpException(message, status);
     });
   }
 
@@ -31,11 +35,19 @@ export class UsersRepository {
         data: { password: newPassword },
         where: { id: id },
       })
-      .catch(() => {
-        throw new UsersException(
-          UsersExcMsg.USERS_ID_BAD_REQUEST,
-          HttpStatus.BAD_REQUEST,
-        );
+      .catch((err) => {
+        let message: string;
+        let status: HttpStatus;
+
+        if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
+          message = UsersExcMsg.USERS_ID_BAD_REQUEST;
+          status = HttpStatus.BAD_REQUEST;
+        } else {
+          message = err.message;
+          status = HttpStatus.BAD_REQUEST;
+        }
+
+        throw new UsersException(message, status);
       });
   }
 
@@ -65,11 +77,19 @@ export class UsersRepository {
       .delete({
         where: { id: id },
       })
-      .catch(() => {
-        throw new UsersException(
-          UsersExcMsg.USERS_ID_BAD_REQUEST,
-          HttpStatus.BAD_REQUEST,
-        );
+      .catch((err) => {
+        let message: string;
+        let status: HttpStatus;
+
+        if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
+          message = UsersExcMsg.USERS_ID_BAD_REQUEST;
+          status = HttpStatus.BAD_REQUEST;
+        } else {
+          message = err.message;
+          status = HttpStatus.BAD_REQUEST;
+        }
+
+        throw new UsersException(message, status);
       });
   }
 

@@ -1,7 +1,7 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReplyEntity } from '../entities/reply.entity';
-import { GlobalExcMsg } from 'src/exceptionHandle/exceptionMessage/global.exception.message';
+import { PrismaCommonErrCode } from 'src/exceptionHandle/exceptionMessage/global.exception.message';
 import { $Enums, Reply } from '@prisma/client';
 import { ReplyException } from 'src/exceptionHandle/customException/reply.exception';
 import { ReplyExcMsg } from 'src/exceptionHandle/exceptionMessage/reply.exception.message';
@@ -16,16 +16,8 @@ export class ReplyRepository {
   constructor(private prisma: PrismaService) {}
 
   async save(reply: ReplyEntity) {
-    await this.prisma.reply.create({ data: reply }).catch((err) => {
-      if (err.code == GlobalExcMsg.UNIQUE_CONSTRAINTS_CODE) {
-        throw new HttpException(
-          GlobalExcMsg.IGNORE_UNIQUE_CONSTRAINTS,
-          HttpStatus.BAD_REQUEST,
-        );
-      } else {
-        throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
-      }
-    });
+    //유니크 제약 조건 사항 없음
+    await this.prisma.reply.create({ data: reply });
   }
 
   async updateReplyByIdAndWriterId(
@@ -38,11 +30,18 @@ export class ReplyRepository {
         data: { content: content, reply_state: $Enums.ReplyState.EDITED },
         where: { id: id, writer_id: writer_id },
       })
-      .catch(() => {
-        throw new ReplyException(
-          ReplyExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST,
-          HttpStatus.BAD_REQUEST,
-        );
+      .catch((err) => {
+        let message: string;
+        let status: HttpStatus;
+
+        if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
+          message = ReplyExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
+          status = HttpStatus.BAD_REQUEST;
+        } else {
+          message = err.message;
+          status = HttpStatus.BAD_REQUEST;
+        }
+        throw new ReplyException(message, status);
       });
   }
 
@@ -51,11 +50,18 @@ export class ReplyRepository {
       .delete({
         where: { id: id, writer_id: writer_id },
       })
-      .catch(() => {
-        throw new ReplyException(
-          ReplyExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST,
-          HttpStatus.BAD_REQUEST,
-        );
+      .catch((err) => {
+        let message: string;
+        let status: HttpStatus;
+
+        if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
+          message = ReplyExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
+          status = HttpStatus.BAD_REQUEST;
+        } else {
+          message = err.message;
+          status = HttpStatus.BAD_REQUEST;
+        }
+        throw new ReplyException(message, status);
       });
   }
 

@@ -13,22 +13,27 @@ exports.UsersRepository = void 0;
 const common_1 = require("@nestjs/common");
 const users_repository_constant_1 = require("./constant/users.repository.constant");
 const prisma_service_1 = require("../../prisma/prisma.service");
-const global_exception_message_1 = require("../../exceptionHandle/exceptionMessage/global.exception.message");
 const validate_found_data_1 = require("../../common/validate.found-data");
 const users_exception_1 = require("../../exceptionHandle/customException/users.exception");
 const users_exception_message_1 = require("../../exceptionHandle/exceptionMessage/users.exception.message");
+const global_exception_message_1 = require("../../exceptionHandle/exceptionMessage/global.exception.message");
 let UsersRepository = class UsersRepository {
     constructor(prisma) {
         this.prisma = prisma;
     }
     async save(usersEntity) {
         await this.prisma.users.create({ data: usersEntity }).catch((err) => {
-            if (err.code == global_exception_message_1.GlobalExcMsg.UNIQUE_CONSTRAINTS_CODE) {
-                throw new common_1.HttpException(global_exception_message_1.GlobalExcMsg.IGNORE_UNIQUE_CONSTRAINTS, common_1.HttpStatus.BAD_REQUEST);
+            let message;
+            let status;
+            if (err.code == global_exception_message_1.PrismaCommonErrCode.UNIQUE_CONSTRAINTS_VIOLATION) {
+                message = users_exception_message_1.UsersExcMsg.USERNAME_UNIQUE_CONSTRAINTS_VIOLATION;
+                status = common_1.HttpStatus.CONFLICT;
             }
             else {
-                throw new common_1.HttpException(err.message, common_1.HttpStatus.BAD_REQUEST);
+                message = err.message;
+                status = common_1.HttpStatus.BAD_REQUEST;
             }
+            throw new common_1.HttpException(message, status);
         });
     }
     async updatePasswordById(newPassword, id) {
@@ -37,8 +42,18 @@ let UsersRepository = class UsersRepository {
             data: { password: newPassword },
             where: { id: id },
         })
-            .catch(() => {
-            throw new users_exception_1.UsersException(users_exception_message_1.UsersExcMsg.USERS_ID_BAD_REQUEST, common_1.HttpStatus.BAD_REQUEST);
+            .catch((err) => {
+            let message;
+            let status;
+            if (err.code === global_exception_message_1.PrismaCommonErrCode.RECORD_NOT_FOUND) {
+                message = users_exception_message_1.UsersExcMsg.USERS_ID_BAD_REQUEST;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            else {
+                message = err.message;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            throw new users_exception_1.UsersException(message, status);
         });
     }
     async addRefreshToken(username, refreshToken) {
@@ -64,8 +79,18 @@ let UsersRepository = class UsersRepository {
             .delete({
             where: { id: id },
         })
-            .catch(() => {
-            throw new users_exception_1.UsersException(users_exception_message_1.UsersExcMsg.USERS_ID_BAD_REQUEST, common_1.HttpStatus.BAD_REQUEST);
+            .catch((err) => {
+            let message;
+            let status;
+            if (err.code === global_exception_message_1.PrismaCommonErrCode.RECORD_NOT_FOUND) {
+                message = users_exception_message_1.UsersExcMsg.USERS_ID_BAD_REQUEST;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            else {
+                message = err.message;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            throw new users_exception_1.UsersException(message, status);
         });
     }
     async findOneByUsername(username) {

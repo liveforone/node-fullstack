@@ -24,14 +24,7 @@ let ReplyRepository = class ReplyRepository {
         this.prisma = prisma;
     }
     async save(reply) {
-        await this.prisma.reply.create({ data: reply }).catch((err) => {
-            if (err.code == global_exception_message_1.GlobalExcMsg.UNIQUE_CONSTRAINTS_CODE) {
-                throw new common_1.HttpException(global_exception_message_1.GlobalExcMsg.IGNORE_UNIQUE_CONSTRAINTS, common_1.HttpStatus.BAD_REQUEST);
-            }
-            else {
-                throw new common_1.HttpException(err.message, common_1.HttpStatus.BAD_REQUEST);
-            }
-        });
+        await this.prisma.reply.create({ data: reply });
     }
     async updateReplyByIdAndWriterId(content, id, writer_id) {
         await this.prisma.reply
@@ -39,8 +32,18 @@ let ReplyRepository = class ReplyRepository {
             data: { content: content, reply_state: client_1.$Enums.ReplyState.EDITED },
             where: { id: id, writer_id: writer_id },
         })
-            .catch(() => {
-            throw new reply_exception_1.ReplyException(reply_exception_message_1.ReplyExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST, common_1.HttpStatus.BAD_REQUEST);
+            .catch((err) => {
+            let message;
+            let status;
+            if (err.code === global_exception_message_1.PrismaCommonErrCode.RECORD_NOT_FOUND) {
+                message = reply_exception_message_1.ReplyExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            else {
+                message = err.message;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            throw new reply_exception_1.ReplyException(message, status);
         });
     }
     async deleteOneByIdAndWriterId(id, writer_id) {
@@ -48,8 +51,18 @@ let ReplyRepository = class ReplyRepository {
             .delete({
             where: { id: id, writer_id: writer_id },
         })
-            .catch(() => {
-            throw new reply_exception_1.ReplyException(reply_exception_message_1.ReplyExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST, common_1.HttpStatus.BAD_REQUEST);
+            .catch((err) => {
+            let message;
+            let status;
+            if (err.code === global_exception_message_1.PrismaCommonErrCode.RECORD_NOT_FOUND) {
+                message = reply_exception_message_1.ReplyExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            else {
+                message = err.message;
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            throw new reply_exception_1.ReplyException(message, status);
         });
     }
     async findOneById(id) {
