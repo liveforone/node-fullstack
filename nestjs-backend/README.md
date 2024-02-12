@@ -36,6 +36,7 @@
   - [파일 업로드](#파일-업로드)
   - [도커라이징](#도커라이징)
   - [많이 쓰는 prisma 에러](#많이-쓰는-prisma-에러)
+  - [type](#type)
 
 ## 기술 스택
 
@@ -382,3 +383,28 @@ if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
 
 throw new UsersException(message, status);
 ```
+
+## type
+
+- interface는 객체로만 선언이 가능하나, 타입은 다양한 형태(단일, 유니온, 배열 등)로 선언이 가능하다.
+- 특히나 interface는 원시 자료형으로 선언이 불가하다.(예시 첫번째 처럼)
+
+```typescript
+type TExample = string; //원시 자료형
+type TExample2 = string | number;
+type Texample3 = [val: string, val2: number];
+```
+
+- 객체를 만들고 이를 타입으로 바꾸려면 `type 이름 = typeof 객체` 를 사용하면 된다.
+
+```typescript
+const obj = {
+  id: number,
+  name: string,
+};
+
+type TObj = typeof obj;
+```
+
+- 타입은 사용자와의 상호 작용보단, 마이크로서비스에서 서비스간 통신 혹은 서버 내에서의 통신에 사용하는 것이 좋을 것 같다.
+- 여러개의 함수가 있고, 이 함수들에 매개변수가 중복되어 들어오는 경우 타입을 만들어서 사용하면 좋다.(특히나 파라미터 갯수가 3개 이상이 될때)
