@@ -35,6 +35,7 @@
   - [Json 성능 최적화](#json-성능-최적화)
   - [파일 업로드](#파일-업로드)
   - [도커라이징](#도커라이징)
+  - [db connection pool](#db-connection-pool)
   - [많이 쓰는 prisma 에러](#많이-쓰는-prisma-에러)
   - [type](#type)
 
@@ -337,7 +338,6 @@ const posts: Post[] = await prisma.user
   2. 최대한 컴팩트하게 유지한다.
   3. 중첩을 최대한 피한다.
   4. 네이밍을 축약한다. (transaction_state => tnxState)
-  5. 프로토콜버퍼를 사용한다.
 
 ## 파일 업로드
 
@@ -347,6 +347,10 @@ const posts: Post[] = await prisma.user
 ## 도커라이징
 
 - [도커라이징 EN](https://www.tomray.dev/nestjs-docker-production)
+
+## db connection pool
+
+- 커넥션 풀 사이즈는 .env에 있는 url을 통해 걸어주면 된다.
 
 ## 많이 쓰는 prisma 에러
 
