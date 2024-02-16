@@ -10,6 +10,29 @@
 - `npm i sass`
 - `npm i styled-components`
 
+## 실행 with pm2
+
+1. 윈도우가 아닌 운영체제에서 실행할때
+   - `pm2 start npm --name 이름 -- start`
+2. 윈도우에서 실행할때
+   - 아래 파일을 만든다.
+   - `pm2 start pm2_frserver.js`
+
+```javascript
+//pm2_frserver.js
+
+const exec = require('child_process').exec;
+const path = require('path');
+
+const pm2_client = exec('npm run start', {
+  windowsHide: true,
+  cwd: path.join(__dirname, './'),
+});
+
+pm2_client.stdout.pipe(process.stdout);
+pm2_client.stderr.pipe(process.stderr);
+```
+
 ## axios
 
 - post, path는 url, body, config(param, header)를 매개변수로 받는다.
