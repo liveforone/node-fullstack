@@ -67,3 +67,8 @@ new Date(data.created_date).toLocaleString();
 ## 재로딩
 
 - 재로딩시에는 `window.location.reload()`를 사용하면 된다.
+
+## 디자인 툴
+
+- [애니메이션](https://www.framer.com/motion/)
+- [ui디자인](https://mui.com/material-ui/all-components/)
