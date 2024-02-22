@@ -1,7 +1,16 @@
-#개발단계에서 사용되는 docker-compose.yml
 version: '3.9'
 
 services:
+  nestjs-backend:
+    image: yc4852/nestjs-backend:1.0
+    ports:
+      - 8080:8080
+    depends_on:
+      - redis
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
   redis:
     image: redis
     command: redis-server --port 6379

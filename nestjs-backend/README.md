@@ -34,7 +34,11 @@
   - [n+1 문제 해결](#n1-문제-해결)
   - [Json 성능 최적화](#json-성능-최적화)
   - [파일 업로드](#파일-업로드)
-  - [도커라이징](#도커라이징)
+  - [도커](#도커)
+    - [process](#process)
+    - [Dockerfile](#dockerfile)
+    - [Docker command](#docker-command)
+    - [도커 빌드 실패시](#도커-빌드-실패시)
   - [db connection pool](#db-connection-pool)
   - [많이 쓰는 prisma 에러](#많이-쓰는-prisma-에러)
   - [type](#type)
@@ -163,12 +167,16 @@ app.enableShutdownHooks();
 - 개발 단계에서 중간중간 마이그레이션 파일을 만드는 command이다.
   - `npm run db:update`
   - `"db:update": "npx prisma generate && npx prisma migrate dev --name init",`
-- 도커 compose를 실행하며 db에 마이그레이션 파일을 deploy하는 start command이다. **프로덕션에만 사용된다.(모든 쓰레드를 다 끌어다 쓰기 때문이다.)**
+- 도커 compose를 실행하며 db에 마이그레이션 파일을 deploy하는 start command이다.
   - `npm start`
-  - `"start": "npm run docker:start  && npx prisma migrate deploy && pm2 start dist/main.js -i max",`
+  - `"start": "npm run docker:start  && npx prisma migrate deploy && pm2 start dist/main.js -i 8",`
 - 개발시 사용되면 도커 compose를 실행하며 db에 마이그레이션 파일을 deploy하는 command이다.
   - `npm start:dev`
   - `"start:dev": "npm run docker:start  && npx prisma migrate deploy && nest start"`
+- 프로덕션에서 사용하는 command이다.
+  - `npm start:prod`
+  - `"start:prod": "npx prisma migrate deploy && pm2 start dist/main.js -i 8"`
+  - **프로덕션에만 사용된다.(모든 쓰레드를 다 끌어다 쓰기 때문이다.)**
 - 서버 실행을 완료한 후 종료시 사용하는 command이다.
   - `npm run close`
   - `"close": "npm run docker:stop",`
@@ -344,9 +352,51 @@ const posts: Post[] = await prisma.user
 - 파일을 쓰는경우 express framework만 가능하다. fastify는 불가능하다.
 - 그리고 복잡성이 두드러지므로, 파일 서버를 따로 분리하여서 save, serve 역할을 모두 하도록 위임하는 것이 좋다.
 
-## 도커라이징
+## 도커
 
-- [도커라이징 EN](https://www.tomray.dev/nestjs-docker-production)
+### process
+
+1. .env의 환경변수들을 prod 레벨에 맞게 변경한다.
+2. 사용하려는 서버에 맞게 pm2 스크립트의 코어수를 설정한다.
+3. .dockerignore 파일을 작성한다.
+4. Dockerfile을 만들어서 컨테이너를 구성한다.
+5. docker hub에 push한다.
+6. docker-compose.yml을 만들어서 필요한 모든 컨테이너를 구성한다.
+7. 서버에서 node, pm2, typescript 설치
+8. 서버에서 컨테이너들을 pull하고, docker-compose.yml 파일을 실행한다.
+
+### Dockerfile
+
+- nestjs는 prisma에 의존적이라서, prisma를 로컬에서 빌드한 후
+- 해당 디렉토리 또한 copy해야한다.
+- 또한 서버에서 `pwd` 명령어로 디렉토리 위치를 파악한후
+- mkdir/workdir 설정을 해준다.
+
+```Dockerfile
+FROM node:20-alpine
+RUN mkdir -p /server/nestjs
+WORKDIR /home/chankim/server/nestjs
+COPY package*.json ./
+COPY prisma ./prisma/
+RUN npm install
+COPY . .
+RUN npm run build
+EXPOSE 8080
+CMD [ "npm", "run", "start:prod" ]
+```
+
+### Docker command
+
+- `docker build -t nestjs-backend:버전 .`
+- `docker tag imageName:버전 id/imageName:버전`
+- `docker push <사용자_이름>/<이미지_이름>:버전`
+- `docker pull <사용자_이름>/<이미지_이름>:버전`
+- `docker pull postgres:13`
+- `docker pull redis:latest`
+
+### 도커 빌드 실패시
+
+- 도커 필드가 실패하면 user폴더(윈도우)에 .docker/contexts/meta에 있는 폴더?파일?을 삭제하면된다.
 
 ## db connection pool
 
