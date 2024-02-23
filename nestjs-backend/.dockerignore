@@ -1,7 +1,0 @@
-Dockerfile
-docker-compose.yml
-.dockerignore
-deploy
-node_modules
-dist
-.git

@@ -1,4 +1,3 @@
-#개발단계에서 사용되는 docker-compose.yml
 version: '3.9'
 
 services:
