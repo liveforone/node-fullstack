@@ -20,6 +20,10 @@
     - [중간마다 계속 실행, 초기 포함, 스키마 변경시](#중간마다-계속-실행-초기-포함-스키마-변경시)
   - [prisma api 주의 사항](#prisma-api-주의-사항)
   - [redis](#redis)
+    - [setting](#setting-1)
+    - [접속](#접속)
+    - [command](#command-1)
+    - [code](#code)
   - [배포](#배포)
     - [배포 특징](#배포-특징)
     - [배포 프로세스](#배포-프로세스)
@@ -91,9 +95,8 @@
 - `npm i @nestjs/passport`
 - `npm i bcrypt`
 - `npm i @types/bcrypt`
+- `npm i redis`
 - `npm i class-validator class-transformer`
-- `npm install @nestjs/cache-manager cache-manager`
-- `npm i cache-manager-redis-yet`
 - `npm i prisma`
 - `npm i @prisma/client`
 - `npm i prisma-no-offset`
@@ -165,13 +168,13 @@ app.enableShutdownHooks();
 - 개발 단계에서 중간중간 마이그레이션 파일을 만드는 command이다.
   - `npm run db:update`
   - `"db:update": "npx prisma generate && npx prisma migrate dev --name init",`
-- redis를 실행하며 db에 마이그레이션 파일을 deploy하는 start command이다.
+- db에 마이그레이션 파일을 deploy하는 start command이다.
   - 이는 프론트 단과 연동하여 개발할 때 사용한다.
   - `npm start`
-  - `"start": "npm run redis:start  && npx prisma migrate deploy && pm2 start dist/main.js",`
-- 개발시 사용되며, 도커 compose를 실행하고 db에 마이그레이션 파일을 deploy하는 command이다.
+  - `"start": "npx prisma migrate deploy && pm2 start dist/main.js",`
+- 개발시 사용되며 db에 마이그레이션 파일을 deploy하는 command이다.
   - `npm start:dev`
-  - `"start:dev": "npm run redis:start && npx prisma migrate deploy && nest start --watch"`
+  - `"start:dev": "npx prisma migrate deploy && nest start --watch"`
 - 프로덕션에서 사용하는 command이다.
   - `npm start:prod`
   - `"start:prod": "npx prisma db push && npx prisma migrate deploy && pm2 start dist/main.js -i 8",`
@@ -210,13 +213,70 @@ app.enableShutdownHooks();
 
 ## redis
 
-- 실서버와 달리 로컬(개발) 환경에서는 wsl이 켜지면 자동으로 redis도 실행된다.
-- `sudo apt-get install redis-server` : redis 설치
+> 실서버와 달리 로컬(개발) 환경에서는 wsl이 켜지면 자동으로 redis도 실행된다.
+
+### setting
+
+1. `sudo apt-get install redis-server` : redis 설치
+2. `sudo vi /etc/redis/redis.conf`
+3. `/requirepass` 를 통해서 주석처리된 부분을 찾는다.
+4. `requirepass 비밀번호` 로 비밀번호를 설정한다.
+5. `sudo systemctl restart redis-server`
+6. `acl setuser 유저 on >비밀번호 allkeys allcommands`: 유저생성 -> 이 유저는 모든 권한을 가진다.
+
+### 접속
+
+- 접속시에 `auth 비밀번호`로 접속한다.
+- 혹은 `auth 유저 비밀번호`로 접속한다.
+
+### command
+
 - `redis-server` : redis 실행
 - `service redis start` : redis 실행
 - `service redis stop` : redis 중지
 - `service redis status` : redis 상태 확인
 - `redis-cli` : redis 접근
+- `acl list` : 유저 확인
+- `redis cli --user 유저 --pass 비밀번호 monitor` : 모니터링
+- 필자는 `auth chan 159624`로 로그인한다.
+
+### code
+
+- redisProvider의 url에는 `username:password@host:port`형식으로 매핑한다.
+- redis에 비밀번호가 걸려있는 경우 username은 `default`로 준다.
+- 만약 유저를 만들어서 처리하고 있다면 해당 유저와 비밀번호를 넣어주면된다.
+- `acl list`해서 유저 이름을 보면 기본 유저의 이름은 `default`로 되어있다.
+- redis.module은 app.module에 import 해야한다.
+- 또한 redisProvider를 사용하는 도메인이 있다면 해당 도메인 모듈에 import 해주어야한다.
+- 일반적인 캐시 추상화 시스템과 달리 node-redis를 이용해 처리를 할 때에는 service단에서 모든 구현을 마치는 것이 좋다.
+- 데이터를 redis에 저장할때에는 `JSON.stringify()`함수를 통해 수동으로 문자열로 바꾼후에 저장해야하며,
+- redis에서 꺼낸 후에는 `JSON.parse()`함수를 통해 수동으로 json 객체로 변환시켜야한다.
+- `expire()`메서드로 ttl을 설정할때에는 `mode`설정은 하지 말아라
+
+```typescript
+//redisProvider.ts
+export const redisProvider = [
+  {
+    provide: REDIS_CLIENT,
+    useFactory: async () => {
+      const client = createClient({
+        url: 'redis://default:159624@localhost:6379',
+        username: 'chan',
+        password: '159624',
+      });
+      await client.connect();
+      return client;
+    },
+  },
+];
+
+//redis.module.ts
+@Module({
+  providers: [...redisProvider],
+  exports: [...redisProvider],
+})
+export class RedisModule {}
+```
 
 ## 배포
 

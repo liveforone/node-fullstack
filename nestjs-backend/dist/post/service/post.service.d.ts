@@ -2,21 +2,16 @@ import { PostRepository } from '../repository/post.repository';
 import { CreatePostDto } from '../dto/request/create-post.dto';
 import { UpdatePostDto } from '../dto/request/update-post.dto';
 import { RemovePostDto } from '../dto/request/remove-post.dto';
+import { RedisClientType } from 'redis';
 export declare class PostService {
+    private readonly redis;
     private postRepository;
     private readonly logger;
-    constructor(postRepository: PostRepository);
+    constructor(redis: RedisClientType, postRepository: PostRepository);
     createPost(createPostDto: CreatePostDto): Promise<void>;
     updateContent(updatePostDto: UpdatePostDto, id: bigint): Promise<void>;
     removePost(removePostDto: RemovePostDto, id: bigint): Promise<void>;
-    getPostById(id: bigint): Promise<{
-        id: bigint;
-        title: string;
-        content: string;
-        post_state: import(".prisma/client").$Enums.PostState;
-        writer_id: string;
-        created_date: Date;
-    }>;
+    getPostById(id: bigint): Promise<any>;
     getAllOptimizedPostPage(lastId: bigint): Promise<import("../dto/response/post-optimized-page.dto").PostOptimizedPageDto>;
     getOptimizedPostPageByWriterId(writerId: string, lastId: bigint): Promise<import("../dto/response/post-optimized-page.dto").PostOptimizedPageDto>;
     searchOptimizedPostPageByTitle(title: string, lastId: bigint): Promise<import("../dto/response/post-optimized-page.dto").PostOptimizedPageDto>;

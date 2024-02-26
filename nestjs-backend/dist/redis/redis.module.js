@@ -6,21 +6,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostModule = void 0;
+exports.RedisModule = void 0;
 const common_1 = require("@nestjs/common");
-const post_service_1 = require("./service/post.service");
-const post_repository_1 = require("./repository/post.repository");
-const post_controller_1 = require("./controller/post.controller");
-const redis_module_1 = require("../redis/redis.module");
-let PostModule = class PostModule {
+const redis_provider_1 = require("./redis.provider");
+let RedisModule = class RedisModule {
 };
-exports.PostModule = PostModule;
-exports.PostModule = PostModule = __decorate([
+exports.RedisModule = RedisModule;
+exports.RedisModule = RedisModule = __decorate([
     (0, common_1.Module)({
-        imports: [redis_module_1.RedisModule],
-        controllers: [post_controller_1.PostController],
-        providers: [post_service_1.PostService, post_repository_1.PostRepository],
-        exports: [post_service_1.PostService],
+        providers: [...redis_provider_1.redisProvider],
+        exports: [...redis_provider_1.redisProvider],
     })
-], PostModule);
-//# sourceMappingURL=post.module.js.map
+], RedisModule);
+//# sourceMappingURL=redis.module.js.map

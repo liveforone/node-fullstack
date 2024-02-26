@@ -22,12 +22,9 @@ const users_controller_response_1 = require("./response/users.controller.respons
 const update_password_dto_1 = require("../dto/request/update-password.dto");
 const withdraw_dto_1 = require("../dto/request/withdraw.dto");
 const users_controller_constant_1 = require("./constant/users.controller.constant");
-const cache_manager_1 = require("@nestjs/cache-manager");
-const users_cache_key_1 = require("../../cache/key/users.cache.key");
 let UsersController = class UsersController {
-    constructor(usersService, cacheManger) {
+    constructor(usersService) {
         this.usersService = usersService;
-        this.cacheManger = cacheManger;
     }
     async signup(signupDto) {
         await this.usersService.signup(signupDto);
@@ -40,17 +37,16 @@ let UsersController = class UsersController {
     async withdraw(withdrawDto, req) {
         const id = req.user.userId;
         await this.usersService.withdraw(withdrawDto, id);
-        await this.cacheManger.del(users_cache_key_1.UsersCacheKey.USER_INFO + id);
         return users_controller_response_1.UsersResponse.WITHDRAW_SUCCESS;
     }
-    async userInfo(id) {
+    async getUserInfo(id) {
         const userInfo = await this.usersService.getOneDtoById(id);
         return userInfo;
     }
-    async profile(req) {
+    async getProfile(req) {
         return await this.usersService.getOneDtoById(req.user.userId);
     }
-    async returnId(req) {
+    async getId(req) {
         return { id: req.user.userId };
     }
 };
@@ -82,30 +78,27 @@ __decorate([
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Get)(users_url_1.UsersUrl.USER_INFO),
-    (0, common_1.UseInterceptors)(cache_manager_1.CacheInterceptor),
     __param(0, (0, common_1.Param)(users_controller_constant_1.UsersControllerConstant.ID)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], UsersController.prototype, "userInfo", null);
+], UsersController.prototype, "getUserInfo", null);
 __decorate([
     (0, common_1.Get)(users_url_1.UsersUrl.PROFILE),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], UsersController.prototype, "profile", null);
+], UsersController.prototype, "getProfile", null);
 __decorate([
     (0, common_1.Get)(users_url_1.UsersUrl.RETURN_ID),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], UsersController.prototype, "returnId", null);
+], UsersController.prototype, "getId", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)(users_url_1.UsersUrl.ROOT),
-    __param(1, (0, common_1.Inject)(cache_manager_1.CACHE_MANAGER)),
-    __metadata("design:paramtypes", [users_service_1.UsersService,
-        cache_manager_1.Cache])
+    __metadata("design:paramtypes", [users_service_1.UsersService])
 ], UsersController);
 //# sourceMappingURL=users.controller.js.map

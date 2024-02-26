@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 var UsersService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = void 0;
@@ -17,8 +20,12 @@ const users_service_log_1 = require("../log/users.service.log");
 const users_repository_1 = require("../repository/users.repository");
 const PasswordEncoder_1 = require("../../auth/util/PasswordEncoder");
 const users_validator_1 = require("../validator/users.validator");
+const users_cache_key_1 = require("../../redis/key/users.cache.key");
+const redis_constant_1 = require("../../redis/constant/redis.constant");
+const redis_util_1 = require("../../redis/util/redis.util");
 let UsersService = UsersService_1 = class UsersService {
-    constructor(usersRepository) {
+    constructor(redis, usersRepository) {
+        this.redis = redis;
         this.usersRepository = usersRepository;
         this.logger = new common_1.Logger(UsersService_1.name);
     }
@@ -49,6 +56,7 @@ let UsersService = UsersService_1 = class UsersService {
         const user = await this.usersRepository.findOneById(id);
         await (0, users_validator_1.validateUserPassword)(withdrawDto.password, user.password);
         await this.usersRepository.deleteOneById(id);
+        await this.redis.del(users_cache_key_1.UsersCacheKey.USER_INFO + id);
         this.logger.log(users_service_log_1.UsersServiceLog.WITHDRAW_SUCCESS + id);
     }
     async getOneByUsername(username) {
@@ -58,7 +66,17 @@ let UsersService = UsersService_1 = class UsersService {
         return await this.usersRepository.findOneById(id);
     }
     async getOneDtoById(id) {
-        return await this.usersRepository.findOneUserInfoById(id);
+        const redisKey = users_cache_key_1.UsersCacheKey.USER_INFO + id;
+        const cachedUserInfo = await this.redis.get(redisKey);
+        if ((0, redis_util_1.notExistInRedis)(cachedUserInfo)) {
+            const userInfo = await this.usersRepository.findOneUserInfoById(id);
+            await this.redis.set(redisKey, JSON.stringify(userInfo));
+            await this.redis.expire(redisKey, redis_constant_1.REDIS_GLOBAL_TTL);
+            return userInfo;
+        }
+        else {
+            return JSON.parse(cachedUserInfo);
+        }
     }
     async getRefreshTokenById(id) {
         return await this.usersRepository.findRefreshTokenById(id);
@@ -67,6 +85,7 @@ let UsersService = UsersService_1 = class UsersService {
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = UsersService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [users_repository_1.UsersRepository])
+    __param(0, (0, common_1.Inject)(redis_constant_1.REDIS_CLIENT)),
+    __metadata("design:paramtypes", [Object, users_repository_1.UsersRepository])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

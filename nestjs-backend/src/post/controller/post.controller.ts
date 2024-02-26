@@ -7,8 +7,6 @@ import {
   Param,
   Delete,
   Query,
-  UseInterceptors,
-  Inject,
 } from '@nestjs/common';
 import { PostService } from '../service/post.service';
 import { PostUrl } from './constant/post.url';
@@ -19,16 +17,10 @@ import { RemovePostDto } from '../dto/request/remove-post.dto';
 import { PostResponse } from './response/post.controller.response';
 import { DEFAULT_LAST_ID, LAST_ID } from 'prisma-no-offset';
 import { FIRST_PAGE, PAGE } from 'src/common/page.util';
-import { CACHE_MANAGER, Cache, CacheInterceptor } from '@nestjs/cache-manager';
-import { PostCacheKey } from 'src/cache/key/post.cache.key';
 
 @Controller(PostUrl.ROOT)
 export class PostController {
-  constructor(
-    private readonly postService: PostService,
-    @Inject(CACHE_MANAGER)
-    private cacheManger: Cache,
-  ) {}
+  constructor(private readonly postService: PostService) {}
 
   @Get()
   async getAllPostsPage(@Query(LAST_ID) lastId: bigint = DEFAULT_LAST_ID) {
@@ -78,7 +70,6 @@ export class PostController {
     return await this.postService.searchPostPageByTitle(keyword, page);
   }
 
-  @UseInterceptors(CacheInterceptor)
   @Get(PostUrl.DETAIL)
   async postDetailInfo(@Param(PostControllerConstant.ID) id: bigint) {
     return await this.postService.getPostById(id);
@@ -96,7 +87,6 @@ export class PostController {
     @Body() updatePostDto: UpdatePostDto,
   ) {
     await this.postService.updateContent(updatePostDto, id);
-    await this.cacheManger.del(PostCacheKey.DETAIL + id);
     return PostResponse.UPDATE_POST_SUCCESS;
   }
 
@@ -106,7 +96,6 @@ export class PostController {
     @Body() removePostDto: RemovePostDto,
   ) {
     await this.postService.removePost(removePostDto, id);
-    await this.cacheManger.del(PostCacheKey.DETAIL + id);
     return PostResponse.DELETE_POST_SUCCESS;
   }
 }

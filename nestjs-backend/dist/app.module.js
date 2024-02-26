@@ -17,9 +17,8 @@ const timeout_interceptor_1 = require("./interceptor/timeout.interceptor");
 const jwt_guard_1 = require("./auth/guard/jwt.guard");
 const post_module_1 = require("./post/post.module");
 const prisma_module_1 = require("./prisma/prisma.module");
-const cache_manager_1 = require("@nestjs/cache-manager");
-const cache_manager_redis_yet_1 = require("cache-manager-redis-yet");
 const reply_module_1 = require("./reply/reply.module");
+const redis_module_1 = require("./redis/redis.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -30,11 +29,7 @@ exports.AppModule = AppModule = __decorate([
                 cache: true,
                 isGlobal: true,
             }),
-            cache_manager_1.CacheModule.register({
-                isGlobal: true,
-                store: cache_manager_redis_yet_1.redisStore,
-                ttl: 3600000,
-            }),
+            redis_module_1.RedisModule,
             prisma_module_1.PrismaModule,
             users_module_1.UsersModule,
             auth_module_1.AuthModule,

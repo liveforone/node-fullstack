@@ -1,16 +1,27 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PostRepository } from '../repository/post.repository';
 import { CreatePostDto } from '../dto/request/create-post.dto';
 import { PostEntity } from '../entities/post.entity';
 import { UpdatePostDto } from '../dto/request/update-post.dto';
 import { RemovePostDto } from '../dto/request/remove-post.dto';
 import { PostServiceLog } from '../log/post.service.log';
+import { PostCacheKey } from 'src/redis/key/post.cache.key';
+import {
+  REDIS_CLIENT,
+  REDIS_GLOBAL_TTL,
+} from 'src/redis/constant/redis.constant';
+import { RedisClientType } from 'redis';
+import { notExistInRedis } from 'src/redis/util/redis.util';
 
 @Injectable()
 export class PostService {
   private readonly logger = new Logger(PostService.name);
 
-  constructor(private postRepository: PostRepository) {}
+  constructor(
+    @Inject(REDIS_CLIENT)
+    private readonly redis: RedisClientType,
+    private postRepository: PostRepository,
+  ) {}
 
   async createPost(createPostDto: CreatePostDto) {
     const { writerId: writerId, title, content } = createPostDto;
@@ -25,6 +36,7 @@ export class PostService {
       id,
       writerId,
     );
+    await this.redis.del(PostCacheKey.DETAIL + id);
     this.logger.log(PostServiceLog.UPDATE_POST_SUCCESS + id);
   }
 
@@ -33,11 +45,21 @@ export class PostService {
       id,
       removePostDto.writerId,
     );
+    await this.redis.del(PostCacheKey.DETAIL + id);
     this.logger.log(PostServiceLog.REMOVE_POST_SUCCESS + id);
   }
 
   async getPostById(id: bigint) {
-    return await this.postRepository.findOneById(id);
+    const redisKey = PostCacheKey.DETAIL + id;
+    const cachedPostInfo = await this.redis.get(redisKey);
+    if (notExistInRedis(cachedPostInfo)) {
+      const postInfo: any = await this.postRepository.findOneById(id);
+      await this.redis.set(redisKey, JSON.stringify(postInfo));
+      await this.redis.expire(redisKey, REDIS_GLOBAL_TTL);
+      return postInfo;
+    } else {
+      return JSON.parse(cachedPostInfo);
+    }
   }
 
   async getAllOptimizedPostPage(lastId: bigint) {

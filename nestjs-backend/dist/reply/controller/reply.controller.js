@@ -26,10 +26,10 @@ let ReplyController = class ReplyController {
     constructor(replyService) {
         this.replyService = replyService;
     }
-    async detail(id) {
+    async getReplydetailInfo(id) {
         return await this.replyService.getOneById(id);
     }
-    async belongPost(postId, lastId = prisma_no_offset_1.DEFAULT_LAST_ID) {
+    async getRepliesBelongPostPage(postId, lastId = prisma_no_offset_1.DEFAULT_LAST_ID) {
         return await this.replyService.getReplyPageByPostId(postId, lastId);
     }
     async createReply(createReplyDto) {
@@ -52,7 +52,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [BigInt]),
     __metadata("design:returntype", Promise)
-], ReplyController.prototype, "detail", null);
+], ReplyController.prototype, "getReplydetailInfo", null);
 __decorate([
     (0, common_1.Get)(reply_url_1.ReplyUrl.BELONG_POST),
     __param(0, (0, common_1.Param)(reply_controller_constant_1.ReplyControllerConstant.POST_ID)),
@@ -60,7 +60,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [BigInt, BigInt]),
     __metadata("design:returntype", Promise)
-], ReplyController.prototype, "belongPost", null);
+], ReplyController.prototype, "getRepliesBelongPostPage", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),

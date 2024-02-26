@@ -23,32 +23,29 @@ const remove_post_dto_1 = require("../dto/request/remove-post.dto");
 const post_controller_response_1 = require("./response/post.controller.response");
 const prisma_no_offset_1 = require("prisma-no-offset");
 const page_util_1 = require("../../common/page.util");
-const cache_manager_1 = require("@nestjs/cache-manager");
-const post_cache_key_1 = require("../../cache/key/post.cache.key");
 let PostController = class PostController {
-    constructor(postService, cacheManger) {
+    constructor(postService) {
         this.postService = postService;
-        this.cacheManger = cacheManger;
     }
-    async allPosts(lastId = prisma_no_offset_1.DEFAULT_LAST_ID) {
+    async getAllPostsPage(lastId = prisma_no_offset_1.DEFAULT_LAST_ID) {
         return this.postService.getAllOptimizedPostPage(lastId);
     }
-    async belongWriter(writerId, lastId = prisma_no_offset_1.DEFAULT_LAST_ID) {
+    async getBelongWriterPage(writerId, lastId = prisma_no_offset_1.DEFAULT_LAST_ID) {
         return await this.postService.getOptimizedPostPageByWriterId(writerId, lastId);
     }
-    async searchPosts(keyword, lastId = prisma_no_offset_1.DEFAULT_LAST_ID) {
+    async getSearchPostsPage(keyword, lastId = prisma_no_offset_1.DEFAULT_LAST_ID) {
         return await this.postService.searchOptimizedPostPageByTitle(keyword, lastId);
     }
-    async allPostsOffset(page = page_util_1.FIRST_PAGE) {
+    async getAllPostsOffsetPage(page = page_util_1.FIRST_PAGE) {
         return await this.postService.getAllPostPage(page);
     }
-    async belongWriterOffset(writerId, page = page_util_1.FIRST_PAGE) {
+    async getBelongWriterOffsetPage(writerId, page = page_util_1.FIRST_PAGE) {
         return await this.postService.getPostPageByWriterId(writerId, page);
     }
-    async searchPostsOffset(keyword, page = page_util_1.FIRST_PAGE) {
+    async getSearchPostsOffsetPage(keyword, page = page_util_1.FIRST_PAGE) {
         return await this.postService.searchPostPageByTitle(keyword, page);
     }
-    async detail(id) {
+    async postDetailInfo(id) {
         return await this.postService.getPostById(id);
     }
     async createPost(createPostDto) {
@@ -57,12 +54,10 @@ let PostController = class PostController {
     }
     async updatePost(id, updatePostDto) {
         await this.postService.updateContent(updatePostDto, id);
-        await this.cacheManger.del(post_cache_key_1.PostCacheKey.DETAIL + id);
         return post_controller_response_1.PostResponse.UPDATE_POST_SUCCESS;
     }
     async removePost(id, removePostDto) {
         await this.postService.removePost(removePostDto, id);
-        await this.cacheManger.del(post_cache_key_1.PostCacheKey.DETAIL + id);
         return post_controller_response_1.PostResponse.DELETE_POST_SUCCESS;
     }
 };
@@ -73,7 +68,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [BigInt]),
     __metadata("design:returntype", Promise)
-], PostController.prototype, "allPosts", null);
+], PostController.prototype, "getAllPostsPage", null);
 __decorate([
     (0, common_1.Get)(post_url_1.PostUrl.BELONG_WRITER),
     __param(0, (0, common_1.Param)(post_controller_constant_1.PostControllerConstant.WRITER_ID)),
@@ -81,7 +76,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, BigInt]),
     __metadata("design:returntype", Promise)
-], PostController.prototype, "belongWriter", null);
+], PostController.prototype, "getBelongWriterPage", null);
 __decorate([
     (0, common_1.Get)(post_url_1.PostUrl.SEARCH_POSTS),
     __param(0, (0, common_1.Query)(post_controller_constant_1.PostControllerConstant.KEYWORD)),
@@ -89,14 +84,14 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, BigInt]),
     __metadata("design:returntype", Promise)
-], PostController.prototype, "searchPosts", null);
+], PostController.prototype, "getSearchPostsPage", null);
 __decorate([
     (0, common_1.Get)(post_url_1.PostUrl.ALL_OFFSET),
     __param(0, (0, common_1.Query)(page_util_1.PAGE)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
-], PostController.prototype, "allPostsOffset", null);
+], PostController.prototype, "getAllPostsOffsetPage", null);
 __decorate([
     (0, common_1.Get)(post_url_1.PostUrl.BELONG_WRITER_OFFSET),
     __param(0, (0, common_1.Param)(post_controller_constant_1.PostControllerConstant.WRITER_ID)),
@@ -104,7 +99,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", Promise)
-], PostController.prototype, "belongWriterOffset", null);
+], PostController.prototype, "getBelongWriterOffsetPage", null);
 __decorate([
     (0, common_1.Get)(post_url_1.PostUrl.SEARCH_POSTS_OFFSET),
     __param(0, (0, common_1.Query)(post_controller_constant_1.PostControllerConstant.KEYWORD)),
@@ -112,15 +107,14 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", Promise)
-], PostController.prototype, "searchPostsOffset", null);
+], PostController.prototype, "getSearchPostsOffsetPage", null);
 __decorate([
-    (0, common_1.UseInterceptors)(cache_manager_1.CacheInterceptor),
     (0, common_1.Get)(post_url_1.PostUrl.DETAIL),
     __param(0, (0, common_1.Param)(post_controller_constant_1.PostControllerConstant.ID)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [BigInt]),
     __metadata("design:returntype", Promise)
-], PostController.prototype, "detail", null);
+], PostController.prototype, "postDetailInfo", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
@@ -146,8 +140,6 @@ __decorate([
 ], PostController.prototype, "removePost", null);
 exports.PostController = PostController = __decorate([
     (0, common_1.Controller)(post_url_1.PostUrl.ROOT),
-    __param(1, (0, common_1.Inject)(cache_manager_1.CACHE_MANAGER)),
-    __metadata("design:paramtypes", [post_service_1.PostService,
-        cache_manager_1.Cache])
+    __metadata("design:paramtypes", [post_service_1.PostService])
 ], PostController);
 //# sourceMappingURL=post.controller.js.map

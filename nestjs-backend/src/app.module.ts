@@ -8,9 +8,8 @@ import { TimeoutInterceptor } from './interceptor/timeout.interceptor';
 import { JwtGuard } from './auth/guard/jwt.guard';
 import { PostModule } from './post/post.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
 import { ReplyModule } from './reply/reply.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -18,11 +17,7 @@ import { ReplyModule } from './reply/reply.module';
       cache: true,
       isGlobal: true,
     }),
-    CacheModule.register({
-      isGlobal: true,
-      store: redisStore,
-      ttl: 3600000,
-    }),
+    RedisModule,
     PrismaModule,
     UsersModule,
     AuthModule,

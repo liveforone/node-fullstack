@@ -2,10 +2,12 @@ import { SignupDto } from '../dto/request/signup.dto';
 import { UpdatePwDto } from '../dto/request/update-password.dto';
 import { WithdrawDto } from '../dto/request/withdraw.dto';
 import { UsersRepository } from '../repository/users.repository';
+import { RedisClientType } from 'redis';
 export declare class UsersService {
+    private readonly redis;
     private usersRepository;
     private readonly logger;
-    constructor(usersRepository: UsersRepository);
+    constructor(redis: RedisClientType, usersRepository: UsersRepository);
     signup(signupDto: SignupDto): Promise<void>;
     updatePassword(updatePwDto: UpdatePwDto, id: string): Promise<void>;
     saveRefreshToken(username: string, refreshToken: string): Promise<void>;

@@ -7,8 +7,6 @@ import {
   Delete,
   Request,
   Patch,
-  UseInterceptors,
-  Inject,
 } from '@nestjs/common';
 import { UsersService } from '../service/users.service';
 import { SignupDto } from '../dto/request/signup.dto';
@@ -18,16 +16,10 @@ import { UsersResponse } from './response/users.controller.response';
 import { UpdatePwDto } from '../dto/request/update-password.dto';
 import { WithdrawDto } from '../dto/request/withdraw.dto';
 import { UsersControllerConstant } from './constant/users.controller.constant';
-import { CACHE_MANAGER, Cache, CacheInterceptor } from '@nestjs/cache-manager';
-import { UsersCacheKey } from 'src/cache/key/users.cache.key';
 
 @Controller(UsersUrl.ROOT)
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    @Inject(CACHE_MANAGER)
-    private cacheManger: Cache,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Public()
   @Post(UsersUrl.SIGNUP)
@@ -46,14 +38,12 @@ export class UsersController {
   async withdraw(@Body() withdrawDto: WithdrawDto, @Request() req) {
     const id = req.user.userId;
     await this.usersService.withdraw(withdrawDto, id);
-    await this.cacheManger.del(UsersCacheKey.USER_INFO + id);
     return UsersResponse.WITHDRAW_SUCCESS;
   }
 
   //front에서 사용자 정보 필요시 요청하는 api, 클라이언트가 호출하는 api가 아니다
   @Public()
   @Get(UsersUrl.USER_INFO)
-  @UseInterceptors(CacheInterceptor)
   async getUserInfo(@Param(UsersControllerConstant.ID) id: string) {
     const userInfo = await this.usersService.getOneDtoById(id);
     return userInfo;

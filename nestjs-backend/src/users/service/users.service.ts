@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SignupDto } from '../dto/request/signup.dto';
 import { UpdatePwDto } from '../dto/request/update-password.dto';
 import { UsersEntity } from '../entities/users.entity';
@@ -7,12 +7,23 @@ import { UsersServiceLog } from '../log/users.service.log';
 import { UsersRepository } from '../repository/users.repository';
 import { encodePassword } from 'src/auth/util/PasswordEncoder';
 import { validateUserPassword } from '../validator/users.validator';
+import { UsersCacheKey } from 'src/redis/key/users.cache.key';
+import { RedisClientType } from 'redis';
+import {
+  REDIS_CLIENT,
+  REDIS_GLOBAL_TTL,
+} from 'src/redis/constant/redis.constant';
+import { notExistInRedis } from 'src/redis/util/redis.util';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(
+    @Inject(REDIS_CLIENT)
+    private readonly redis: RedisClientType,
+    private usersRepository: UsersRepository,
+  ) {}
 
   async signup(signupDto: SignupDto) {
     const { username, password } = signupDto;
@@ -49,6 +60,7 @@ export class UsersService {
     const user = await this.usersRepository.findOneById(id);
     await validateUserPassword(withdrawDto.password, user.password);
     await this.usersRepository.deleteOneById(id);
+    await this.redis.del(UsersCacheKey.USER_INFO + id);
     this.logger.log(UsersServiceLog.WITHDRAW_SUCCESS + id);
   }
 
@@ -61,7 +73,16 @@ export class UsersService {
   }
 
   async getOneDtoById(id: string) {
-    return await this.usersRepository.findOneUserInfoById(id);
+    const redisKey = UsersCacheKey.USER_INFO + id;
+    const cachedUserInfo = await this.redis.get(redisKey);
+    if (notExistInRedis(cachedUserInfo)) {
+      const userInfo = await this.usersRepository.findOneUserInfoById(id);
+      await this.redis.set(redisKey, JSON.stringify(userInfo));
+      await this.redis.expire(redisKey, REDIS_GLOBAL_TTL);
+      return userInfo;
+    } else {
+      return JSON.parse(cachedUserInfo);
+    }
   }
 
   async getRefreshTokenById(id: string) {
