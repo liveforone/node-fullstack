@@ -54,18 +54,18 @@ export class UsersController {
   @Public()
   @Get(UsersUrl.USER_INFO)
   @UseInterceptors(CacheInterceptor)
-  async userInfo(@Param(UsersControllerConstant.ID) id: string) {
+  async getUserInfo(@Param(UsersControllerConstant.ID) id: string) {
     const userInfo = await this.usersService.getOneDtoById(id);
     return userInfo;
   }
 
   @Get(UsersUrl.PROFILE)
-  async profile(@Request() req) {
+  async getProfile(@Request() req) {
     return await this.usersService.getOneDtoById(req.user.userId);
   }
 
   @Get(UsersUrl.RETURN_ID)
-  async returnId(@Request() req) {
+  async getId(@Request() req) {
     return { id: req.user.userId };
   }
 }

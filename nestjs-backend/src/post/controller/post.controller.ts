@@ -31,12 +31,12 @@ export class PostController {
   ) {}
 
   @Get()
-  async allPosts(@Query(LAST_ID) lastId: bigint = DEFAULT_LAST_ID) {
+  async getAllPostsPage(@Query(LAST_ID) lastId: bigint = DEFAULT_LAST_ID) {
     return this.postService.getAllOptimizedPostPage(lastId);
   }
 
   @Get(PostUrl.BELONG_WRITER)
-  async belongWriter(
+  async getBelongWriterPage(
     @Param(PostControllerConstant.WRITER_ID) writerId: string,
     @Query(LAST_ID) lastId: bigint = DEFAULT_LAST_ID,
   ) {
@@ -47,7 +47,7 @@ export class PostController {
   }
 
   @Get(PostUrl.SEARCH_POSTS)
-  async searchPosts(
+  async getSearchPostsPage(
     @Query(PostControllerConstant.KEYWORD) keyword: string,
     @Query(LAST_ID) lastId: bigint = DEFAULT_LAST_ID,
   ) {
@@ -58,12 +58,12 @@ export class PostController {
   }
 
   @Get(PostUrl.ALL_OFFSET)
-  async allPostsOffset(@Query(PAGE) page: number = FIRST_PAGE) {
+  async getAllPostsOffsetPage(@Query(PAGE) page: number = FIRST_PAGE) {
     return await this.postService.getAllPostPage(page);
   }
 
   @Get(PostUrl.BELONG_WRITER_OFFSET)
-  async belongWriterOffset(
+  async getBelongWriterOffsetPage(
     @Param(PostControllerConstant.WRITER_ID) writerId: string,
     @Query(PAGE) page: number = FIRST_PAGE,
   ) {
@@ -71,7 +71,7 @@ export class PostController {
   }
 
   @Get(PostUrl.SEARCH_POSTS_OFFSET)
-  async searchPostsOffset(
+  async getSearchPostsOffsetPage(
     @Query(PostControllerConstant.KEYWORD) keyword: string,
     @Query(PAGE) page: number = FIRST_PAGE,
   ) {
@@ -80,7 +80,7 @@ export class PostController {
 
   @UseInterceptors(CacheInterceptor)
   @Get(PostUrl.DETAIL)
-  async detail(@Param(PostControllerConstant.ID) id: bigint) {
+  async postDetailInfo(@Param(PostControllerConstant.ID) id: bigint) {
     return await this.postService.getPostById(id);
   }
 

@@ -22,12 +22,12 @@ export class ReplyController {
   constructor(private readonly replyService: ReplyService) {}
 
   @Get(ReplyUrl.DETAIL)
-  async detail(@Param(ReplyControllerConstant.ID) id: bigint) {
+  async getReplydetailInfo(@Param(ReplyControllerConstant.ID) id: bigint) {
     return await this.replyService.getOneById(id);
   }
 
   @Get(ReplyUrl.BELONG_POST)
-  async belongPost(
+  async getRepliesBelongPostPage(
     @Param(ReplyControllerConstant.POST_ID) postId: bigint,
     @Query(LAST_ID) lastId: bigint = DEFAULT_LAST_ID,
   ) {
