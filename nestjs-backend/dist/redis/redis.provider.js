@@ -9,8 +9,6 @@ exports.redisProvider = [
         useFactory: async () => {
             const client = (0, redis_1.createClient)({
                 url: 'redis://default:159624@localhost:6379',
-                username: 'chan',
-                password: '159624',
             });
             await client.connect();
             return client;

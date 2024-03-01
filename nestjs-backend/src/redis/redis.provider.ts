@@ -6,9 +6,9 @@ export const redisProvider = [
     provide: REDIS_CLIENT,
     useFactory: async () => {
       const client = createClient({
-        url: 'redis://default:159624@localhost:6379',
-        username: 'chan',
-        password: '159624',
+        //아래 url은 개발 단계에서 사용된다.
+        // url: 'redis://default:159624@localhost:6379',
+        url: 'redis://default:159624@host.docker.internal:6379',
       });
       await client.connect();
       return client;

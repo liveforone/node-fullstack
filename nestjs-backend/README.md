@@ -25,8 +25,17 @@
     - [command](#command-1)
     - [code](#code)
   - [배포](#배포)
-    - [배포 특징](#배포-특징)
-    - [배포 프로세스](#배포-프로세스)
+    - [1. 도커 단일서버 배포](#1-도커-단일서버-배포)
+      - [도커 파일](#도커-파일)
+      - [도커 포트 포워딩 및 expose](#도커-포트-포워딩-및-expose)
+      - [도커 pm2](#도커-pm2)
+      - [command](#command-2)
+    - [2. 도커 클러스터 배포](#2-도커-클러스터-배포)
+      - [클러스터 실행파일](#클러스터-실행파일)
+      - [도커파일](#도커파일)
+      - [command](#command-3)
+    - [3. 일반 배포](#3-일반-배포)
+      - [배포 프로세스](#배포-프로세스)
   - [nestjs 도메인 개발 특수사항](#nestjs-도메인-개발-특수사항)
   - [테스트시 주의점](#테스트시-주의점)
   - [Real DB Test](#real-db-test)
@@ -223,6 +232,7 @@ app.enableShutdownHooks();
 4. `requirepass 비밀번호` 로 비밀번호를 설정한다.
 5. `sudo systemctl restart redis-server`
 6. `acl setuser 유저 on >비밀번호 allkeys allcommands`: 유저생성 -> 이 유저는 모든 권한을 가진다.
+7. 외부에서 접근 해야하는 경우에는 `bind 0.0.0.0` 옵션을 conf 파일에 삽입한다.
 
 ### 접속
 
@@ -280,13 +290,110 @@ export class RedisModule {}
 
 ## 배포
 
-### 배포 특징
+- 두가지 배포 형식에 대해 서술하고 있다.
+- 첫째는 도커를 이용한 배포이다. 이 배포는 조금 복잡할지 몰라도 소스코드가 자주 변경되는 환경에서 아주 유익하다.
+- 두번째는 일반적인 배포이다. 도커 보다 간단하면서 좀더 자유롭다는 장점을 지니지만, 자주 변경되는 환경에서는 아주 큰 단점을 가진다.
 
-- 도커로 엄청난 삽질을 한 결과 외부와 많은 커넥션이 있는 서버는 도커로 구성하기 어렵다.
-- 따라서 일반적인 배포 방식을 따르는 것으로 한다.
-- redis는 서버 어플리케이션과 같은 서버에 둔다.
+### 1. 도커 단일서버 배포
 
-### 배포 프로세스
+- 도커 배포의 경우 package.json의 여러 실행 스크립트를 쓰지 않는다.
+- 또한 외부와 커넥션이 있고, 그 커넥션이 로컬일 경우 `host.docker.internal`을 사용해야한다.
+
+#### 도커 파일
+
+- 노드는 alpine을 사용하여 가볍게 구성해준다.
+- pm2를 사용하길 원한다면 pm2를 도커에 설치해야한다.
+
+```Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm install --global pm2
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 8080
+
+CMD ["pm2-runtime", "dist/main.js"]
+```
+
+#### 도커 포트 포워딩 및 expose
+
+- expose 명령어를 사용하면 해당하는 로컬의 포트를 열어줄 것 같지만 그렇지 않다.
+- 그 포트를 사용하겠다고 명시하는 것 뿐이다.
+- 따라서 컨테이너를 `run`할때 반드시 `-p` 옵션을 통해서 포트포워딩을 해주어야한다.
+
+#### 도커 pm2
+
+- pm2를 도커 내부에서 사용하기 위해서는 `pm2-runtime` 명령어로 fork 모드로 실행해야한다.
+
+#### command
+
+- 이미지 빌드 : `docker build --tag 이름:1.0 .`
+- 이미지 확인 : `docker image ls`
+- 컨테이너 실행 : `docker run -p 8080:8080 컨테이너이름`
+- pm2 list : `docker exec -it 컨테이너ID pm2 list`
+- pm2 kill : `docker exec -it {컨테이너이름} pm2 kill`
+
+### 2. 도커 클러스터 배포
+
+- 1번 도커 단일서버 배포의 확장판이다.
+- 따라서 1번을 숙지후 해당 문서를 사용하는 것이 좋다.
+
+#### 클러스터 실행파일
+
+```javascript
+module.exports = [
+  {
+    script: 'dist/main.js',
+    name: 'nest-backend:1.0', // <- 컨테이너 이름을 넣는다.
+    exec_mode: 'cluster',
+    instances: 5, // <- 인스턴스 수를 넣는다.
+  },
+];
+```
+
+#### 도커파일
+
+```Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm install --global pm2
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 8080
+
+CMD ["pm2-runtime", "start", "ecosystem.config.js", "--env", "production"]
+```
+
+#### command
+
+- 이미지 빌드 : `docker build --tag 이름:1.0 .`
+- 이미지 확인 : `docker image ls`
+- 컨테이너 실행 : `docker run -p 8080:8080 -d 컨테이너이름`
+- pm2 list : `docker exec -it 컨테이너ID pm2 list`
+- pm2 kill : `docker exec -it {컨테이너이름} pm2 kill`
+- pm2 log : `docker exec -it {컨테이너이름} pm2 log 모듈에서 붙인 이름`
+
+### 3. 일반 배포
+
+#### 배포 프로세스
 
 > db서버와 어플리케이션 서버가 분리되었다는 가정하에 작성한다.
 > .pem과 같은 키는 어드민이 서버에 접속할 때 사용되며 포트로 커넥션시에는 필요없다.
