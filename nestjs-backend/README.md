@@ -317,6 +317,8 @@ RUN npm install
 
 COPY . .
 
+RUN npx prisma generate
+RUN npx prisma db push
 RUN npm run build
 
 EXPOSE 8080
@@ -338,6 +340,7 @@ CMD ["pm2-runtime", "dist/main.js"]
 
 - 이미지 빌드 : `docker build --tag 이름:1.0 .`
 - 이미지 확인 : `docker image ls`
+- 이미지 배포 : `docker push 계정/이미지`
 - 컨테이너 실행 : `docker run -p 8080:8080 컨테이너이름`
 - pm2 list : `docker exec -it 컨테이너ID pm2 list`
 - pm2 kill : `docker exec -it {컨테이너이름} pm2 kill`
@@ -375,6 +378,8 @@ RUN npm install
 
 COPY . .
 
+RUN npx prisma generate
+RUN npx prisma db push
 RUN npm run build
 
 EXPOSE 8080
@@ -386,6 +391,7 @@ CMD ["pm2-runtime", "start", "ecosystem.config.js", "--env", "production"]
 
 - 이미지 빌드 : `docker build --tag 이름:1.0 .`
 - 이미지 확인 : `docker image ls`
+- 이미지 배포 : `docker push 계정/이미지`
 - 컨테이너 실행 : `docker run -p 8080:8080 -d 컨테이너이름`
 - pm2 list : `docker exec -it 컨테이너ID pm2 list`
 - pm2 kill : `docker exec -it {컨테이너이름} pm2 kill`
