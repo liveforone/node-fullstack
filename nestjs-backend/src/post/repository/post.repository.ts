@@ -87,7 +87,7 @@ export class PostRepository {
   //==no offset paging(optimization paging) start==//
 
   async findAllOptimizedPostPage(
-    lastId: bigint,
+    lastId?: bigint,
   ): Promise<PostOptimizedPageDto> {
     const lastIdCondition = ltLastIdCondition(lastId);
     const posts: PostPage[] = await this.prisma.post.findMany({

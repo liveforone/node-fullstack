@@ -23,7 +23,7 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Get()
-  async getAllPostsPage(@Query(LAST_ID) lastId: bigint = DEFAULT_LAST_ID) {
+  async getAllPostsPage(@Query(LAST_ID) lastId?: bigint) {
     return this.postService.getAllOptimizedPostPage(lastId);
   }
 

@@ -62,7 +62,7 @@ export class PostService {
     }
   }
 
-  async getAllOptimizedPostPage(lastId: bigint) {
+  async getAllOptimizedPostPage(lastId?: bigint) {
     return await this.postRepository.findAllOptimizedPostPage(lastId);
   }
 
