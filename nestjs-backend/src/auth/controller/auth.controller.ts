@@ -1,10 +1,10 @@
 import { Body, Controller, Post, Request } from '@nestjs/common';
-import { AuthUrl } from './constant/auth.url';
+import { AuthUrl } from './constant/auth-url.constant';
 import { AuthService } from '../service/auth.service';
 import { Public } from '../decorator/public.decorator';
 import { LoginDto } from '../dto/request/login.dto';
-import { AuthControllerConstant } from './constant/auth.controller.constant';
-import { AuthResponse } from './response/auth.controller.response';
+import { AuthControllerConstant } from './constant/auth-controller.constant';
+import { AuthResponse } from './response/auth.response';
 
 @Controller(AuthUrl.ROOT)
 export class AuthController {

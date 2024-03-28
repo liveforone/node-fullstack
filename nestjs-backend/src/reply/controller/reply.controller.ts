@@ -9,11 +9,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { ReplyService } from '../service/reply.service';
-import { ReplyUrl } from './constant/reply.url';
+import { ReplyUrl } from './constant/reply-url.constant';
 import { CreateReplyDto } from '../dto/request/create-reply.dto';
-import { ReplyResponse } from './response/reply.controller.response';
+import { ReplyResponse } from './response/reply.response';
 import { UpdateReplydto } from '../dto/request/update-reply.dto';
-import { ReplyControllerConstant } from './constant/reply.controller.constant';
+import { ReplyControllerConstant } from './constant/reply-controller.constant';
 import { RemoveReplyDto } from '../dto/request/remove-reply.dto';
 import { DEFAULT_LAST_ID, LAST_ID } from 'prisma-no-offset';
 

@@ -9,6 +9,10 @@ export class PrismaService
   constructor() {
     super({
       log: ['error', 'info', 'query', 'warn'],
+      transactionOptions: {
+        maxWait: 2000,
+        timeout: 4000,
+      },
     });
   }
 

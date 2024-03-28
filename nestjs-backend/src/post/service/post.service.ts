@@ -4,8 +4,8 @@ import { CreatePostDto } from '../dto/request/create-post.dto';
 import { PostEntity } from '../entities/post.entity';
 import { UpdatePostDto } from '../dto/request/update-post.dto';
 import { RemovePostDto } from '../dto/request/remove-post.dto';
-import { PostServiceLog } from '../log/post.service.log';
-import { PostCacheKey } from 'src/redis/key/post.cache.key';
+import { PostServiceLog } from '../log/post-service.log';
+import { PostCacheKey } from 'src/redis/key/post-cache.key';
 import {
   REDIS_CLIENT,
   REDIS_GLOBAL_TTL,

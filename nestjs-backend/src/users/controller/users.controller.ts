@@ -11,11 +11,11 @@ import {
 import { UsersService } from '../service/users.service';
 import { SignupDto } from '../dto/request/signup.dto';
 import { Public } from '../../auth/decorator/public.decorator';
-import { UsersUrl } from './constant/users.url';
-import { UsersResponse } from './response/users.controller.response';
+import { UsersUrl } from './constant/users-url.constant';
+import { UsersResponse } from './response/users.response';
 import { UpdatePwDto } from '../dto/request/update-password.dto';
 import { WithdrawDto } from '../dto/request/withdraw.dto';
-import { UsersControllerConstant } from './constant/users.controller.constant';
+import { UsersControllerConstant } from './constant/users-controller.constant';
 
 @Controller(UsersUrl.ROOT)
 export class UsersController {

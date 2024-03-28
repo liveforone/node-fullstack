@@ -3,11 +3,12 @@ import { UsersService } from '../users/service/users.service';
 import { UsersRepository } from '../users/repository/users.repository';
 import { SignupDto } from '../users/dto/request/signup.dto';
 import { UpdatePwDto } from '../users/dto/request/update-password.dto';
-import { isMatchPassword } from '../auth/util/PasswordEncoder';
+import { isMatchPassword } from '../auth/util/password-encoder';
 import { WithdrawDto } from '../users/dto/request/withdraw.dto';
 import { describe } from 'node:test';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpException } from '@nestjs/common';
+import { RedisModule } from 'src/redis/redis.module';
 
 describe('UsersService Command Method Real DB Test', () => {
   let service: UsersService;
@@ -16,6 +17,7 @@ describe('UsersService Command Method Real DB Test', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [RedisModule],
       providers: [UsersService, UsersRepository, PrismaService],
     }).compile();
 

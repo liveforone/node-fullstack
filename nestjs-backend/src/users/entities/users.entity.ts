@@ -1,4 +1,4 @@
-import { encodePassword } from 'src/auth/util/PasswordEncoder';
+import { encodePassword } from 'src/auth/util/password-encoder';
 import { UsersConstant } from './constant/users.constant';
 import { $Enums } from '@prisma/client';
 

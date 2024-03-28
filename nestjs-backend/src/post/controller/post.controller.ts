@@ -9,12 +9,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { PostService } from '../service/post.service';
-import { PostUrl } from './constant/post.url';
-import { PostControllerConstant } from './constant/post.controller.constant';
+import { PostUrl } from './constant/post-url.constant';
+import { PostControllerConstant } from './constant/post-controller.constant';
 import { CreatePostDto } from '../dto/request/create-post.dto';
 import { UpdatePostDto } from '../dto/request/update-post.dto';
 import { RemovePostDto } from '../dto/request/remove-post.dto';
-import { PostResponse } from './response/post.controller.response';
+import { PostResponse } from './response/post.response';
 import { DEFAULT_LAST_ID, LAST_ID } from 'prisma-no-offset';
 import { FIRST_PAGE, PAGE } from 'src/common/page.util';
 

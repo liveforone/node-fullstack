@@ -4,7 +4,7 @@ import { CreateReplyDto } from '../dto/request/create-reply.dto';
 import { UpdateReplydto } from '../dto/request/update-reply.dto';
 import { RemoveReplyDto } from '../dto/request/remove-reply.dto';
 import { ReplyEntity } from '../entities/reply.entity';
-import { ReplyServiceLog } from '../log/reply.service.log';
+import { ReplyServiceLog } from '../log/reply-service.log';
 
 @Injectable()
 export class ReplyService {

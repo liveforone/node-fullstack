@@ -1,17 +1,17 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { PostRepoConstant } from './constant/post.repository.constant';
+import { PostRepoConstant } from './constant/post-repository.constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { $Enums, Post } from '@prisma/client';
 import { PostEntity } from '../entities/post.entity';
 import { PostException } from 'src/exceptionHandle/customException/post.exception';
-import { PostExcMsg } from 'src/exceptionHandle/exceptionMessage/post.exception.message';
+import { PostExcMsg } from 'src/exceptionHandle/exceptionMessage/post-exception.message';
 import { PostPage } from '../dto/response/post-page.dto';
 import { getOffset, pageInitialize } from 'src/common/page.util';
 import { PostOffsetPageDto } from '../dto/response/post-offset-page.dto';
 import { PostOptimizedPageDto } from '../dto/response/post-optimized-page.dto';
 import { findLastIdOrDefault, ltLastIdCondition } from 'prisma-no-offset';
-import { validateFoundData } from 'src/common/validate.found-data';
-import { PrismaCommonErrCode } from 'src/exceptionHandle/exceptionMessage/global.exception.message';
+import { validateFoundData } from 'src/common/found-data.validator';
+import { PrismaCommonErrCode } from 'src/exceptionHandle/exceptionMessage/global-exception.message';
 
 @Injectable()
 export class PostRepository {

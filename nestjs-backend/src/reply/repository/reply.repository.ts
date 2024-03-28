@@ -1,15 +1,15 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReplyEntity } from '../entities/reply.entity';
-import { PrismaCommonErrCode } from 'src/exceptionHandle/exceptionMessage/global.exception.message';
+import { PrismaCommonErrCode } from 'src/exceptionHandle/exceptionMessage/global-exception.message';
 import { $Enums, Reply } from '@prisma/client';
 import { ReplyException } from 'src/exceptionHandle/customException/reply.exception';
-import { ReplyExcMsg } from 'src/exceptionHandle/exceptionMessage/reply.exception.message';
-import { validateFoundData } from 'src/common/validate.found-data';
+import { ReplyExcMsg } from 'src/exceptionHandle/exceptionMessage/reply-exception.message';
+import { validateFoundData } from 'src/common/found-data.validator';
 import { findLastIdOrDefault, ltLastIdCondition } from 'prisma-no-offset';
 import { ReplyPage } from '../dto/response/reply-page.dto';
 import { ReplyOptimizedPageDto } from '../dto/response/reply-optimized-page.dto';
-import { ReplyRepoConstant } from './constant/reply.repository.constant';
+import { ReplyRepoConstant } from './constant/reply-repository.constant';
 
 @Injectable()
 export class ReplyRepository {

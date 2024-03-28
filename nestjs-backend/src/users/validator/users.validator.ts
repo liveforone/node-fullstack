@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
-import { isMatchPassword } from 'src/auth/util/PasswordEncoder';
+import { isMatchPassword } from 'src/auth/util/password-encoder';
 import { UsersException } from 'src/exceptionHandle/customException/users.exception';
-import { UsersExcMsg } from 'src/exceptionHandle/exceptionMessage/users.exception.message';
+import { UsersExcMsg } from 'src/exceptionHandle/exceptionMessage/users-exception.message';
 
 export const validateUserPassword = async (
   originalPw: string,
