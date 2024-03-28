@@ -3,17 +3,19 @@ import { SignupDto } from '../dto/request/signup.dto';
 import { UpdatePwDto } from '../dto/request/update-password.dto';
 import { UsersEntity } from '../entities/users.entity';
 import { WithdrawDto } from '../dto/request/withdraw.dto';
-import { UsersServiceLog } from '../log/users.service.log';
+import { UsersServiceLog } from '../log/users-service.log';
 import { UsersRepository } from '../repository/users.repository';
-import { encodePassword } from 'src/auth/util/PasswordEncoder';
+import { encodePassword } from 'src/auth/util/password-encoder';
 import { validateUserPassword } from '../validator/users.validator';
-import { UsersCacheKey } from 'src/redis/key/users.cache.key';
+import { UsersCacheKey } from 'src/redis/key/users-cache.key';
 import { RedisClientType } from 'redis';
 import {
   REDIS_CLIENT,
   REDIS_GLOBAL_TTL,
 } from 'src/redis/constant/redis.constant';
 import { notExistInRedis } from 'src/redis/util/redis.util';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { validateFoundData } from 'src/common/found-data.validator';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +25,7 @@ export class UsersService {
     @Inject(REDIS_CLIENT)
     private readonly redis: RedisClientType,
     private usersRepository: UsersRepository,
+    private prisma: PrismaService,
   ) {}
 
   async signup(signupDto: SignupDto) {
@@ -34,26 +37,19 @@ export class UsersService {
 
   async updatePassword(updatePwDto: UpdatePwDto, id: string) {
     const { originalPw, newPw } = updatePwDto;
-    const user = await this.usersRepository.findOneById(id);
-    await validateUserPassword(originalPw, user.password);
-    await this.usersRepository.updatePasswordById(
-      await encodePassword(newPw),
-      id,
-    );
+
+    await this.prisma.$transaction(async (tx) => {
+      const user = await tx.users.findUnique({
+        where: { id: id },
+      });
+      validateFoundData(user);
+      await validateUserPassword(originalPw, user.password);
+      await tx.users.update({
+        data: { password: await encodePassword(newPw) },
+        where: { id: id },
+      });
+    });
     this.logger.log(UsersServiceLog.UPDATE_PW_SUCCESS + id);
-  }
-
-  async saveRefreshToken(username: string, refreshToken: string) {
-    await this.usersRepository.addRefreshToken(username, refreshToken);
-  }
-
-  async reissueRefreshToken(reissuedRefreshToken: string, id: string) {
-    await this.usersRepository.reissueRefreshToken(reissuedRefreshToken, id);
-  }
-
-  async removeRefreshToken(id: string) {
-    await this.usersRepository.removeRefreshToken(id);
-    this.logger.log(UsersServiceLog.REMOVE_REFRESH_TOKEN_SUCCESS + id);
   }
 
   async withdraw(withdrawDto: WithdrawDto, id: string) {
@@ -61,6 +57,7 @@ export class UsersService {
     await validateUserPassword(withdrawDto.password, user.password);
     await this.usersRepository.deleteOneById(id);
     await this.redis.del(UsersCacheKey.USER_INFO + id);
+    await this.redis.del(UsersCacheKey.REFRESH_TOKEN + id);
     this.logger.log(UsersServiceLog.WITHDRAW_SUCCESS + id);
   }
 
@@ -73,19 +70,15 @@ export class UsersService {
   }
 
   async getOneDtoById(id: string) {
-    const redisKey = UsersCacheKey.USER_INFO + id;
-    const cachedUserInfo = await this.redis.get(redisKey);
+    const userInfoKey = UsersCacheKey.USER_INFO + id;
+    const cachedUserInfo = await this.redis.get(userInfoKey);
     if (notExistInRedis(cachedUserInfo)) {
       const userInfo = await this.usersRepository.findOneUserInfoById(id);
-      await this.redis.set(redisKey, JSON.stringify(userInfo));
-      await this.redis.expire(redisKey, REDIS_GLOBAL_TTL);
+      await this.redis.set(userInfoKey, JSON.stringify(userInfo));
+      await this.redis.expire(userInfoKey, REDIS_GLOBAL_TTL);
       return userInfo;
     } else {
       return JSON.parse(cachedUserInfo);
     }
-  }
-
-  async getRefreshTokenById(id: string) {
-    return await this.usersRepository.findRefreshTokenById(id);
   }
 }

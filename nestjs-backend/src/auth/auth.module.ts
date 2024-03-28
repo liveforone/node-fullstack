@@ -4,9 +4,10 @@ import { AuthController } from './controller/auth.controller';
 import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EnvPath } from '../config/env_path.constant';
-import { JwtStratey } from './strategy/JwtStrategy';
+import { EnvPath } from '../config/env-path.constant';
+import { JwtStratey } from './strategy/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PassportModule } from '@nestjs/passport';
       }),
       inject: [ConfigService],
     }),
+    RedisModule,
   ],
   providers: [AuthService, JwtStratey],
   controllers: [AuthController],
