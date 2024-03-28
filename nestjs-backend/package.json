@@ -17,7 +17,7 @@
     "start:prod": "npx prisma db push && npx prisma migrate deploy && pm2 start dist/main.js -i 8",
     "close": "npm run docker:stop",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "npx prisma migrate deploy && jest -i",
+    "test": "npx prisma migrate deploy && jest -i --forceExit",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
