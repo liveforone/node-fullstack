@@ -12,7 +12,6 @@ model Users {
   username String @unique
   password String
   role Role @default(MEMBER)
-  refresh_token String?
   post Post[]
   reply Reply[]
 }
