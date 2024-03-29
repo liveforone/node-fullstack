@@ -31,6 +31,7 @@ export class UsersService {
     const { username, password } = signupDto;
     const user = await UsersEntity.create(username, password);
     await this.prisma.users.create({ data: user });
+
     this.logger.log(UsersServiceLog.SIGNUP_SUCCESS + username);
   }
 
@@ -41,12 +42,15 @@ export class UsersService {
       const user = await tx.users.findUnique({
         where: { id: id },
       });
+      validateFoundData(user);
+
       await validateUserPassword(originalPw, user.password);
       await tx.users.update({
         data: { password: await encodePassword(newPw) },
         where: { id: id },
       });
     });
+
     this.logger.log(UsersServiceLog.UPDATE_PW_SUCCESS + id);
   }
 
@@ -54,9 +58,12 @@ export class UsersService {
     await this.prisma.$transaction(async (tx) => {
       const user = await tx.users.findUnique({ where: { id: id } });
       validateFoundData(user);
+
       await validateUserPassword(withdrawDto.password, user.password);
+
       await tx.users.delete({ where: { id: id } });
     });
+
     await this.redis.del(UsersCacheKey.USER_INFO + id);
     await this.redis.del(UsersCacheKey.REFRESH_TOKEN + id);
     this.logger.log(UsersServiceLog.WITHDRAW_SUCCESS + id);
@@ -67,6 +74,7 @@ export class UsersService {
       where: { username: username },
     });
     validateFoundData(user);
+
     return user;
   }
 
@@ -75,23 +83,27 @@ export class UsersService {
       where: { id: id },
     });
     validateFoundData(user);
+
     return user;
   }
 
   async getOneDtoById(id: string): Promise<any> {
     const userInfoKey = UsersCacheKey.USER_INFO + id;
     const cachedUserInfo = await this.redis.get(userInfoKey);
+
     if (notExistInRedis(cachedUserInfo)) {
       const userInfo = await this.prisma.users.findUnique({
         select: { id: true, username: true, role: true },
         where: { id: id },
       });
       validateFoundData(userInfo);
+
       await this.redis.set(userInfoKey, JSON.stringify(userInfo));
       await this.redis.expire(userInfoKey, REDIS_GLOBAL_TTL);
+
       return userInfo;
-    } else {
-      return JSON.parse(cachedUserInfo);
     }
+
+    return JSON.parse(cachedUserInfo);
   }
 }
