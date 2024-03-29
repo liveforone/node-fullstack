@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PostService } from '../post/service/post.service';
 import { PostRepository } from '../post/repository/post.repository';
 import { UsersService } from 'src/users/service/users.service';
-import { UsersRepository } from 'src/users/repository/users.repository';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignupDto } from 'src/users/dto/request/signup.dto';
 import { CreatePostDto } from '../post/dto/request/create-post.dto';
@@ -10,29 +9,23 @@ import { UpdatePostDto } from '../post/dto/request/update-post.dto';
 import { $Enums, Prisma } from '@prisma/client';
 import { RemovePostDto } from '../post/dto/request/remove-post.dto';
 import { HttpException } from '@nestjs/common';
+import { RedisModule } from 'src/redis/redis.module';
 
 describe('PostService Real DB Test', () => {
   let service: PostService;
   let repository: PostRepository;
   let usersService: UsersService;
-  let usersRepository: UsersRepository;
   let prisma: PrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        PostService,
-        PostRepository,
-        UsersService,
-        UsersRepository,
-        PrismaService,
-      ],
+      imports: [RedisModule],
+      providers: [PostService, PostRepository, UsersService, PrismaService],
     }).compile();
 
     service = module.get<PostService>(PostService);
     repository = module.get<PostRepository>(PostRepository);
     usersService = module.get<UsersService>(UsersService);
-    usersRepository = module.get<UsersRepository>(UsersRepository);
     prisma = module.get<PrismaService>(PrismaService);
   });
 
@@ -116,7 +109,7 @@ describe('PostService Real DB Test', () => {
       expect(foundPost.post_state).toEqual($Enums.PostState.EDITED);
     });
 
-    it('잘못된 writer_id를 사용했을때 PostException 발생', async () => {
+    it('잘못된 writer_id를 사용했을때 Prisma Known Error 발생', async () => {
       //given
       const pw = '0000';
       const signUpDto: SignupDto = {
@@ -184,7 +177,7 @@ describe('PostService Real DB Test', () => {
       }).rejects.toThrow(HttpException);
     });
 
-    it('잘못된 writer_id를 사용할때 PostException 발생', async () => {
+    it('잘못된 writer_id를 사용할때 Prisma Known Error 발생', async () => {
       //given
       const pw = '0000';
       const signUpDto: SignupDto = {

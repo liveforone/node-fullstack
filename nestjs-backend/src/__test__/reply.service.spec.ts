@@ -3,7 +3,6 @@ import { ReplyService } from '../reply/service/reply.service';
 import { ReplyRepository } from 'src/reply/repository/reply.repository';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/service/users.service';
-import { UsersRepository } from 'src/users/repository/users.repository';
 import { PostService } from 'src/post/service/post.service';
 import { PostRepository } from 'src/post/repository/post.repository';
 import { SignupDto } from 'src/users/dto/request/signup.dto';
@@ -11,26 +10,25 @@ import { CreatePostDto } from 'src/post/dto/request/create-post.dto';
 import { CreateReplyDto } from 'src/reply/dto/request/create-reply.dto';
 import { UpdateReplydto } from 'src/reply/dto/request/update-reply.dto';
 import { RemoveReplyDto } from 'src/reply/dto/request/remove-reply.dto';
-import { ReplyException } from 'src/exceptionHandle/customException/reply.exception';
-import { HttpException } from '@nestjs/common';
 import { $Enums } from '@prisma/client';
+import { RedisModule } from 'src/redis/redis.module';
+import { HttpException } from '@nestjs/common';
 
 describe('ReplyService Real DB Test', () => {
   let service: ReplyService;
   let repository: ReplyRepository;
   let usersService: UsersService;
-  let usersRepository: UsersRepository;
   let postService: PostService;
   let postRepository: PostRepository;
   let prisma: PrismaService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [RedisModule],
       providers: [
         ReplyService,
         ReplyRepository,
         UsersService,
-        UsersRepository,
         PostService,
         PostRepository,
         PrismaService,
@@ -40,7 +38,6 @@ describe('ReplyService Real DB Test', () => {
     service = module.get<ReplyService>(ReplyService);
     repository = module.get<ReplyRepository>(ReplyRepository);
     usersService = module.get<UsersService>(UsersService);
-    usersRepository = module.get<UsersRepository>(UsersRepository);
     postService = module.get<PostService>(PostService);
     postRepository = module.get<PostRepository>(PostRepository);
     prisma = module.get<PrismaService>(PrismaService);
@@ -158,7 +155,7 @@ describe('ReplyService Real DB Test', () => {
   });
 
   describe('removeReply', () => {
-    it('reply 삭제후 조회시 ReplyException 예외 발생', async () => {
+    it('reply 삭제후 조회시 HttpException 예외 발생', async () => {
       //given
       const signUpDto: SignupDto = {
         username: reply_writer_username,
