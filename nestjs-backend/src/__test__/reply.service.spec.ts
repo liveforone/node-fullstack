@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReplyService } from '../reply/service/reply.service';
-import { ReplyRepository } from 'src/reply/repository/reply.repository';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/service/users.service';
 import { PostService } from 'src/post/service/post.service';
@@ -15,7 +14,6 @@ import { HttpException } from '@nestjs/common';
 
 describe('ReplyService Real DB Test', () => {
   let service: ReplyService;
-  let repository: ReplyRepository;
   let usersService: UsersService;
   let postService: PostService;
   let prisma: PrismaService;
@@ -23,17 +21,11 @@ describe('ReplyService Real DB Test', () => {
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [RedisModule],
-      providers: [
-        ReplyService,
-        ReplyRepository,
-        UsersService,
-        PostService,
-        PrismaService,
-      ],
+      providers: [ReplyService, UsersService, PostService, PrismaService],
     }).compile();
 
     service = module.get<ReplyService>(ReplyService);
-    repository = module.get<ReplyRepository>(ReplyRepository);
+
     usersService = module.get<UsersService>(UsersService);
     postService = module.get<PostService>(PostService);
     prisma = module.get<PrismaService>(PrismaService);
