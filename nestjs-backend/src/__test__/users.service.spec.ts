@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '../users/service/users.service';
-import { UsersRepository } from '../users/repository/users.repository';
 import { SignupDto } from '../users/dto/request/signup.dto';
 import { UpdatePwDto } from '../users/dto/request/update-password.dto';
 import { isMatchPassword } from '../auth/util/password-encoder';
@@ -9,20 +8,19 @@ import { describe } from 'node:test';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpException } from '@nestjs/common';
 import { RedisModule } from 'src/redis/redis.module';
+import { UsersException } from 'src/exceptionHandle/customException/users.exception';
 
 describe('UsersService Command Method Real DB Test', () => {
   let service: UsersService;
-  let repository: UsersRepository;
   let prisma: PrismaService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [RedisModule],
-      providers: [UsersService, UsersRepository, PrismaService],
+      providers: [UsersService, PrismaService],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    repository = module.get<UsersRepository>(UsersRepository);
     prisma = module.get<PrismaService>(PrismaService);
   });
 
@@ -85,7 +83,7 @@ describe('UsersService Command Method Real DB Test', () => {
       }).toBeTruthy();
     });
 
-    it('잘못된 비밀번호를 입력하면 HttpException이 발생한다.', async () => {
+    it('잘못된 비밀번호를 입력하면 UsersException이 발생한다.', async () => {
       //given
       const pw = '1234';
       const signupRequest: SignupDto = {
@@ -103,9 +101,9 @@ describe('UsersService Command Method Real DB Test', () => {
       };
 
       //then
-      expect(async () => {
+      await expect(async () => {
         await service.updatePassword(updatePwRequest, id);
-      }).rejects.toThrow(HttpException);
+      }).rejects.toThrow(UsersException);
     });
   });
 
@@ -125,7 +123,7 @@ describe('UsersService Command Method Real DB Test', () => {
       await service.withdraw(withdrawRequest, id);
 
       //then
-      expect(async () => {
+      await expect(async () => {
         await service.getOneById(id);
       }).rejects.toThrow(HttpException);
     });
