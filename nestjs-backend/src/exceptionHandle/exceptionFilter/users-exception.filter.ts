@@ -3,7 +3,7 @@ import { UsersException } from '../customException/users.exception';
 import { Request, Response } from 'express';
 
 @Catch(UsersException)
-export class UsersExceptionFilterTsFilter implements ExceptionFilter {
+export class UsersExceptionFilter implements ExceptionFilter {
   catch(exception: UsersException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
