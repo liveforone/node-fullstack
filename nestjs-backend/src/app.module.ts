@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ReplyModule } from './reply/reply.module';
 import { RedisModule } from './redis/redis.module';
 import { PrismaClientExceptionFilter } from './exceptionHandle/exceptionFilter/prisma-client-exception.filter';
+import { UsersExceptionFilterTsFilter } from './exceptionHandle/exceptionFilter/users-exception.filter.ts.filter';
 
 @Module({
   imports: [
@@ -37,6 +38,10 @@ import { PrismaClientExceptionFilter } from './exceptionHandle/exceptionFilter/p
     {
       provide: APP_FILTER,
       useClass: PrismaClientExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: UsersExceptionFilterTsFilter,
     },
     {
       provide: APP_INTERCEPTOR,

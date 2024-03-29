@@ -1,17 +1,14 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PostRepoConstant } from './constant/post-repository.constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { $Enums, Post } from '@prisma/client';
 import { PostEntity } from '../entities/post.entity';
-import { PostException } from 'src/exceptionHandle/customException/post.exception';
-import { PostExcMsg } from 'src/exceptionHandle/exceptionMessage/post-exception.message';
 import { PostPage } from '../dto/response/post-page.dto';
 import { getOffset, pageInitialize } from 'src/common/page.util';
 import { PostOffsetPageDto } from '../dto/response/post-offset-page.dto';
 import { PostOptimizedPageDto } from '../dto/response/post-optimized-page.dto';
 import { findLastIdOrDefault, ltLastIdCondition } from 'prisma-no-offset';
 import { validateFoundData } from 'src/common/found-data.validator';
-import { PrismaCommonErrCode } from 'src/exceptionHandle/exceptionMessage/global-exception.message';
 
 @Injectable()
 export class PostRepository {
@@ -36,44 +33,16 @@ export class PostRepository {
     id: bigint,
     writerId: string,
   ) {
-    await this.prisma.post
-      .update({
-        data: { content: content, post_state: $Enums.PostState.EDITED },
-        where: { id: id, writer_id: writerId },
-      })
-      .catch((err) => {
-        let message: string;
-        let status: HttpStatus;
-
-        if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
-          message = PostExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
-          status = HttpStatus.BAD_REQUEST;
-        } else {
-          message = err.message;
-          status = HttpStatus.BAD_REQUEST;
-        }
-        throw new PostException(message, status);
-      });
+    await this.prisma.post.update({
+      data: { content: content, post_state: $Enums.PostState.EDITED },
+      where: { id: id, writer_id: writerId },
+    });
   }
 
   async deleteOneByIdAndWriterId(id: bigint, writerId: string) {
-    await this.prisma.post
-      .delete({
-        where: { id: id, writer_id: writerId },
-      })
-      .catch((err) => {
-        let message: string;
-        let status: HttpStatus;
-
-        if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
-          message = PostExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
-          status = HttpStatus.BAD_REQUEST;
-        } else {
-          message = err.message;
-          status = HttpStatus.BAD_REQUEST;
-        }
-        throw new PostException(message, status);
-      });
+    await this.prisma.post.delete({
+      where: { id: id, writer_id: writerId },
+    });
   }
 
   async findOneById(id: bigint): Promise<Post> {

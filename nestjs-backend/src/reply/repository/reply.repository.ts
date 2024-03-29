@@ -1,10 +1,7 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReplyEntity } from '../entities/reply.entity';
-import { PrismaCommonErrCode } from 'src/exceptionHandle/exceptionMessage/global-exception.message';
 import { $Enums, Reply } from '@prisma/client';
-import { ReplyException } from 'src/exceptionHandle/customException/reply.exception';
-import { ReplyExcMsg } from 'src/exceptionHandle/exceptionMessage/reply-exception.message';
 import { validateFoundData } from 'src/common/found-data.validator';
 import { findLastIdOrDefault, ltLastIdCondition } from 'prisma-no-offset';
 import { ReplyPage } from '../dto/response/reply-page.dto';
@@ -25,44 +22,16 @@ export class ReplyRepository {
     id: bigint,
     writer_id: string,
   ) {
-    await this.prisma.reply
-      .update({
-        data: { content: content, reply_state: $Enums.ReplyState.EDITED },
-        where: { id: id, writer_id: writer_id },
-      })
-      .catch((err) => {
-        let message: string;
-        let status: HttpStatus;
-
-        if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
-          message = ReplyExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
-          status = HttpStatus.BAD_REQUEST;
-        } else {
-          message = err.message;
-          status = HttpStatus.BAD_REQUEST;
-        }
-        throw new ReplyException(message, status);
-      });
+    await this.prisma.reply.update({
+      data: { content: content, reply_state: $Enums.ReplyState.EDITED },
+      where: { id: id, writer_id: writer_id },
+    });
   }
 
   async deleteOneByIdAndWriterId(id: bigint, writer_id: string) {
-    await this.prisma.reply
-      .delete({
-        where: { id: id, writer_id: writer_id },
-      })
-      .catch((err) => {
-        let message: string;
-        let status: HttpStatus;
-
-        if (err.code === PrismaCommonErrCode.RECORD_NOT_FOUND) {
-          message = ReplyExcMsg.ID_OR_WRITER_ID_IS_BAD_REQUEST;
-          status = HttpStatus.BAD_REQUEST;
-        } else {
-          message = err.message;
-          status = HttpStatus.BAD_REQUEST;
-        }
-        throw new ReplyException(message, status);
-      });
+    await this.prisma.reply.delete({
+      where: { id: id, writer_id: writer_id },
+    });
   }
 
   async findOneById(id: bigint): Promise<Reply> {

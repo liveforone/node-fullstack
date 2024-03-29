@@ -7,9 +7,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SignupDto } from 'src/users/dto/request/signup.dto';
 import { CreatePostDto } from '../post/dto/request/create-post.dto';
 import { UpdatePostDto } from '../post/dto/request/update-post.dto';
-import { $Enums } from '@prisma/client';
+import { $Enums, Prisma } from '@prisma/client';
 import { RemovePostDto } from '../post/dto/request/remove-post.dto';
-import { PostException } from 'src/exceptionHandle/customException/post.exception';
 import { HttpException } from '@nestjs/common';
 
 describe('PostService Real DB Test', () => {
@@ -147,7 +146,7 @@ describe('PostService Real DB Test', () => {
       ).postPages[0].id;
       expect(async () => {
         await service.updateContent(updatePostDto, postId);
-      }).rejects.toThrow(PostException);
+      }).rejects.toThrow(Prisma.PrismaClientKnownRequestError);
     });
   });
 
@@ -213,7 +212,7 @@ describe('PostService Real DB Test', () => {
       ).postPages[0].id;
       expect(async () => {
         await service.removePost(removePostDto, postId);
-      }).rejects.toThrow(PostException);
+      }).rejects.toThrow(Prisma.PrismaClientKnownRequestError);
     });
   });
 

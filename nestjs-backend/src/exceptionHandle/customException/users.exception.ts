@@ -1,7 +1,14 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 
-export class UsersException extends HttpException {
+export class UsersException extends Error {
+  private httpStatus: HttpStatus;
+
   constructor(usersExcMsg: string, httpStatus: HttpStatus) {
-    super(usersExcMsg, httpStatus);
+    super(usersExcMsg);
+    this.httpStatus = httpStatus;
+  }
+
+  getStatus() {
+    return this.httpStatus;
   }
 }
