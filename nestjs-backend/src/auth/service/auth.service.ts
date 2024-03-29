@@ -35,14 +35,22 @@ export class AuthService {
 
   async signIn(loginDto: LoginDto) {
     const { username, password } = loginDto;
-    const user = await this.usersService.getOneByUsername(username);
-    await validateUserPassword(password, user.password);
+    const user = await this.usersService
+      .getOneByUsername(username)
+      .then(async (user) => {
+        await validateUserPassword(password, user.password);
+        return user;
+      });
 
     const id = user.id;
     const refreshTokenKey = UsersCacheKey.REFRESH_TOKEN + id;
-    const refreshToken = await this.generateRefreshToken();
-    await this.redis.set(refreshTokenKey, refreshToken);
-    await this.redis.expire(refreshTokenKey, REDIS_REFRESH_TOKEN_TTL);
+    const refreshToken = await this.generateRefreshToken().then(
+      async (refreshToken) => {
+        await this.redis.set(refreshTokenKey, refreshToken);
+        await this.redis.expire(refreshTokenKey, REDIS_REFRESH_TOKEN_TTL);
+        return refreshToken;
+      },
+    );
     this.logger.log(AuthServiceLog.SIGNIN_SUCCESS + username);
 
     return new TokenInfo(await this.generateAccessToken(id), refreshToken);
@@ -67,8 +75,12 @@ export class AuthService {
       throw new UnauthorizedException(AuthExcMsg.REFRESH_TOKEN_IS_EXPIRE);
     }
 
-    const reissuedRefreshToken = await this.generateRefreshToken();
-    await this.redis.set(refreshTokenKey, reissuedRefreshToken);
+    const reissuedRefreshToken = await this.generateRefreshToken().then(
+      async (reissuedRefreshToken) => {
+        await this.redis.set(refreshTokenKey, reissuedRefreshToken);
+        return reissuedRefreshToken;
+      },
+    );
     this.logger.log(AuthServiceLog.REISSUE_TOKEN_SUCCESS + id);
 
     return new TokenInfo(

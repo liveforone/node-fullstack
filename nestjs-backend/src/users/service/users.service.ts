@@ -39,12 +39,15 @@ export class UsersService {
     const { originalPw, newPw } = updatePwDto;
 
     await this.prisma.$transaction(async (tx) => {
-      const user = await tx.users.findUnique({
-        where: { id: id },
-      });
-      validateFoundData(user);
+      await tx.users
+        .findUnique({
+          where: { id: id },
+        })
+        .then(async (user) => {
+          validateFoundData(user);
+          await validateUserPassword(originalPw, user.password);
+        });
 
-      await validateUserPassword(originalPw, user.password);
       await tx.users.update({
         data: { password: await encodePassword(newPw) },
         where: { id: id },
@@ -56,10 +59,10 @@ export class UsersService {
 
   async withdraw(withdrawDto: WithdrawDto, id: string) {
     await this.prisma.$transaction(async (tx) => {
-      const user = await tx.users.findUnique({ where: { id: id } });
-      validateFoundData(user);
-
-      await validateUserPassword(withdrawDto.password, user.password);
+      await tx.users.findUnique({ where: { id: id } }).then(async (user) => {
+        validateFoundData(user);
+        await validateUserPassword(withdrawDto.password, user.password);
+      });
 
       await tx.users.delete({ where: { id: id } });
     });
@@ -70,21 +73,25 @@ export class UsersService {
   }
 
   async getOneByUsername(username: string) {
-    const user = await this.prisma.users.findUnique({
-      where: { username: username },
-    });
-    validateFoundData(user);
-
-    return user;
+    return await this.prisma.users
+      .findUnique({
+        where: { username: username },
+      })
+      .then((user) => {
+        validateFoundData(user);
+        return user;
+      });
   }
 
   async getOneById(id: string): Promise<Users> {
-    const user = await this.prisma.users.findUnique({
-      where: { id: id },
-    });
-    validateFoundData(user);
-
-    return user;
+    return await this.prisma.users
+      .findUnique({
+        where: { id: id },
+      })
+      .then((user) => {
+        validateFoundData(user);
+        return user;
+      });
   }
 
   async getOneDtoById(id: string): Promise<any> {
@@ -92,16 +99,17 @@ export class UsersService {
     const cachedUserInfo = await this.redis.get(userInfoKey);
 
     if (notExistInRedis(cachedUserInfo)) {
-      const userInfo = await this.prisma.users.findUnique({
-        select: { id: true, username: true, role: true },
-        where: { id: id },
-      });
-      validateFoundData(userInfo);
-
-      await this.redis.set(userInfoKey, JSON.stringify(userInfo));
-      await this.redis.expire(userInfoKey, REDIS_GLOBAL_TTL);
-
-      return userInfo;
+      return await this.prisma.users
+        .findUnique({
+          select: { id: true, username: true, role: true },
+          where: { id: id },
+        })
+        .then(async (userInfo) => {
+          validateFoundData(userInfo);
+          await this.redis.set(userInfoKey, JSON.stringify(userInfo));
+          await this.redis.expire(userInfoKey, REDIS_GLOBAL_TTL);
+          return userInfo;
+        });
     }
 
     return JSON.parse(cachedUserInfo);

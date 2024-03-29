@@ -16,7 +16,7 @@ import { $Enums } from '@prisma/client';
 import { validateFoundData } from 'src/common/found-data.validator';
 import { findLastIdOrDefault, ltLastIdCondition } from 'prisma-no-offset';
 import { PostPage } from '../dto/response/post-page.dto';
-import { PostQueryConstant } from './constant/post-repository.constant';
+import { PostQueryConstant } from './constant/post-query.constant';
 import { getOffset, pageInitialize } from 'src/common/page.util';
 
 @Injectable()
@@ -60,14 +60,16 @@ export class PostService {
     const cachedPostInfo = await this.redis.get(redisKey);
 
     if (notExistInRedis(cachedPostInfo)) {
-      const postInfo = await this.prisma.post.findUnique({
-        where: { id: id },
-      });
-      validateFoundData(postInfo);
-      await this.redis.set(redisKey, JSON.stringify(postInfo));
-      await this.redis.expire(redisKey, REDIS_GLOBAL_TTL);
-
-      return postInfo;
+      return await this.prisma.post
+        .findUnique({
+          where: { id: id },
+        })
+        .then(async (postInfo) => {
+          validateFoundData(postInfo);
+          await this.redis.set(redisKey, JSON.stringify(postInfo));
+          await this.redis.expire(redisKey, REDIS_GLOBAL_TTL);
+          return postInfo;
+        });
     }
 
     return JSON.parse(cachedPostInfo);
