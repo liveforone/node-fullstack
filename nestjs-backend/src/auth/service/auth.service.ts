@@ -51,6 +51,7 @@ export class AuthService {
   async reissueJwtToken(id: string, refreshToken: string) {
     const refreshTokenKey = UsersCacheKey.REFRESH_TOKEN + id;
     const foundRefreshToken = await this.redis.get(refreshTokenKey);
+
     if (
       notExistInRedis(foundRefreshToken) ||
       foundRefreshToken != refreshToken
