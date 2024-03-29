@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PostService } from '../post/service/post.service';
-import { PostRepository } from '../post/repository/post.repository';
 import { UsersService } from 'src/users/service/users.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignupDto } from 'src/users/dto/request/signup.dto';
@@ -13,18 +12,16 @@ import { RedisModule } from 'src/redis/redis.module';
 
 describe('PostService Real DB Test', () => {
   let service: PostService;
-  let repository: PostRepository;
   let usersService: UsersService;
   let prisma: PrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [RedisModule],
-      providers: [PostService, PostRepository, UsersService, PrismaService],
+      providers: [PostService, UsersService, PrismaService],
     }).compile();
 
     service = module.get<PostService>(PostService);
-    repository = module.get<PostRepository>(PostRepository);
     usersService = module.get<UsersService>(UsersService);
     prisma = module.get<PrismaService>(PrismaService);
   });

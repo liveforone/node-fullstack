@@ -4,7 +4,6 @@ import { ReplyRepository } from 'src/reply/repository/reply.repository';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/service/users.service';
 import { PostService } from 'src/post/service/post.service';
-import { PostRepository } from 'src/post/repository/post.repository';
 import { SignupDto } from 'src/users/dto/request/signup.dto';
 import { CreatePostDto } from 'src/post/dto/request/create-post.dto';
 import { CreateReplyDto } from 'src/reply/dto/request/create-reply.dto';
@@ -19,7 +18,6 @@ describe('ReplyService Real DB Test', () => {
   let repository: ReplyRepository;
   let usersService: UsersService;
   let postService: PostService;
-  let postRepository: PostRepository;
   let prisma: PrismaService;
 
   beforeAll(async () => {
@@ -30,7 +28,6 @@ describe('ReplyService Real DB Test', () => {
         ReplyRepository,
         UsersService,
         PostService,
-        PostRepository,
         PrismaService,
       ],
     }).compile();
@@ -39,7 +36,6 @@ describe('ReplyService Real DB Test', () => {
     repository = module.get<ReplyRepository>(ReplyRepository);
     usersService = module.get<UsersService>(UsersService);
     postService = module.get<PostService>(PostService);
-    postRepository = module.get<PostRepository>(PostRepository);
     prisma = module.get<PrismaService>(PrismaService);
   });
 
