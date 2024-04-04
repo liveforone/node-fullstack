@@ -99,15 +99,12 @@
 - `npm i @nestjs/config`
 - `npm i dotenv`
 - `wsl openssl rand -hex 64` : jwt 시크릿 키 생성
-- `npm i @nestjs/jwt passport-jwt`
-- `npm i @types/passport-jwt`
+- `npm i @nestjs/jwt passport-jwt @types/passport-jwt`
 - `npm i @nestjs/passport`
-- `npm i bcrypt`
-- `npm i @types/bcrypt`
+- `npm i bcrypt @types/bcrypt`
 - `npm i redis`
 - `npm i class-validator class-transformer`
-- `npm i prisma`
-- `npm i @prisma/client`
+- `npm i prisma @prisma/client`
 - `npm i prisma-no-offset`
 - `npm i pg`
 - `nest g module auth`, service, controller generate
@@ -189,7 +186,7 @@ app.enableShutdownHooks();
   - `"start:prod": "npx prisma db push && npx prisma migrate deploy && pm2 start dist/main.js -i 8",`
 - 테스트 시 활용되며, start command에서 nest서버를 실행하는 것이 아닌 jest를 실행하는 command이다.
   - `npm test`
-  - `"test": "npx prisma migrate deploy && jest -i",`
+  - `"test": "npx prisma migrate deploy && jest -i --forceExit",`
 - 서버 실행을 완료한 후 종료시 사용하는 command이다.
   - `npm run close`
   - `"close": "npm run docker:stop",`
