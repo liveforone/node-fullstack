@@ -42,7 +42,7 @@
     "pg": "^8.11.3",
     "pm2": "^5.3.1",
     "prisma": "^5.10.2",
-    "prisma-common-error-handle": "^1.0.0",
+    "prisma-common-error-handle": "^2.0.0",
     "prisma-no-offset": "^1.1.1",
     "redis": "^4.6.13",
     "rxjs": "^7.8.1",

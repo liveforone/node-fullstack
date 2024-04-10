@@ -2,7 +2,7 @@ import { ArgumentsHost, Catch } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
-import { findPrismaErrorMessageAndStatus } from 'prisma-common-error-handle';
+import { findPrismaErrorInfo } from 'prisma-common-error-handle';
 
 @Catch(Prisma.PrismaClientKnownRequestError)
 export class PrismaClientExceptionFilter extends BaseExceptionFilter {
@@ -10,7 +10,7 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const { message, status } = findPrismaErrorMessageAndStatus(exception);
+    const { message, status } = findPrismaErrorInfo(exception);
 
     response.status(status).json({
       message,
