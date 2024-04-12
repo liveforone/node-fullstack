@@ -106,6 +106,7 @@
 - `npm i class-validator class-transformer`
 - `npm i prisma @prisma/client`
 - `npm i prisma-no-offset`
+- `npm i prisma-common-error-handle`
 - `npm i pg`
 - `nest g module auth`, service, controller generate
 - `nest g resource 이름`
