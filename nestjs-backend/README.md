@@ -93,11 +93,13 @@
 
 ## install
 
-- `nest new project-name`
-- `code .`
-- `npm i @nestjs/testing`
+- [주의] `dotenv`종속성은 절대로 추가하면 안된다. `nestjs/config`와 충돌난다.
+- [주의] estlint와 관련된 종속성 모듈들은 버전을 확인하여 업데이트한다.(버전에 민감)
+- [참고] 이 외의 모듈들은 특별히 버전을 관리하지 않아도 문제 없다. nestjs와 타입스크립트 모듈만 관리해주면 된다.
+- `npx @nestjs/cli new project-name`
+- `npx npm-check-updates -u -f "/nestjs*/"`
+- `npm install`
 - `npm i @nestjs/config`
-- `npm i dotenv`
 - `wsl openssl rand -hex 64` : jwt 시크릿 키 생성
 - `npm i @nestjs/jwt passport-jwt @types/passport-jwt`
 - `npm i @nestjs/passport`
@@ -108,6 +110,7 @@
 - `npm i prisma-no-offset`
 - `npm i prisma-common-error-handle`
 - `npm i pg`
+- 타입스크립트 & reflect-meatdata를 nestjs의 표준 버전과 맞춘다.
 - `nest g module auth`, service, controller generate
 - `nest g resource 이름`
 
@@ -155,13 +158,6 @@
 "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/$1"
     }
-```
-
-- main.ts에 추가
-
-```typescript
-app.useGlobalPipes(new ValidationPipe({ stopAtFirstError: true }));
-app.enableShutdownHooks();
 ```
 
 - `docker ps -a`로 in use인 컨테이너를 찾아서 `docker rm 컨테이너ID`로 모두 삭제한다.
