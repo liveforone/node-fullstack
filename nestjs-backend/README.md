@@ -99,6 +99,8 @@
 - `npx @nestjs/cli new project-name`
 - `npx npm-check-updates -u -f "/nestjs*/"`
 - `npm install`
+- `npm i typescript@<version>`
+- `npm i reflect-metadata@<version>`
 - `npm i @nestjs/config`
 - `wsl openssl rand -hex 64` : jwt 시크릿 키 생성
 - `npm i @nestjs/jwt passport-jwt @types/passport-jwt`
