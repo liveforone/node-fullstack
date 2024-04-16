@@ -95,7 +95,7 @@
 
 - [주의] `dotenv`종속성은 절대로 추가하면 안된다. `nestjs/config`와 충돌난다.
 - [주의] estlint와 관련된 종속성 모듈들은 버전을 확인하여 업데이트한다.(버전에 민감)
-- [참고] 이 외의 모듈들은 특별히 버전을 관리하지 않아도 문제 없다. nestjs와 타입스크립트 모듈만 관리해주면 된다.
+- [참고] 이 외의 모듈들은 특별히 버전을 관리하지 않아도 문제 없다. nestjs & typescript 모듈만 관리해주면 된다.
 - `npx @nestjs/cli new project-name`
 - `npx npm-check-updates -u -f "/nestjs*/"`
 - `npm install`
